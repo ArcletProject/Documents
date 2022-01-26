@@ -3,7 +3,7 @@ id: help-doc
 title: 内置帮助文档
 ---
 
-# Help Doc
+## Help Doc
 `Alconna` 支持通过`XXX.help("XXX")`来写入帮助说明,
 
 以上面的指令为例：

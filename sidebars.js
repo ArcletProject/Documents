@@ -14,7 +14,7 @@ module.exports = {
         'alconna/tutorial',
         {
           type: 'category',
-          label: "Command",
+          label: "命令基础",
           items: [
             'command-analyser',
             'command-structure',
@@ -22,7 +22,7 @@ module.exports = {
         },
         {
           type: 'category',
-          label: "Basic",
+          label: "Alconna基础",
           items: [
             'alconna-construct',
             'alconna-template-command',
@@ -32,7 +32,7 @@ module.exports = {
         },
         {
           type: 'category',
-          label: "Details",
+          label: "Alconna细节",
           items: [
             'special-construct',
             'help-doc',
@@ -47,7 +47,15 @@ module.exports = {
       type: 'category',
       label: 'Edoves',
       items:[
-        'edoves/tutorial'
+        'edoves/tutorial',
+        {
+          type: 'category',
+          label: "入门",
+          items: [
+            'hello-world',
+            'explain'
+          ].map(value => `edoves/fast-start/${value}`)
+        },
       ]
     },
   ],

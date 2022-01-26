@@ -3,7 +3,7 @@ id: alconna-arpamar
 title: 解析结果
 ---
 
-# Arpamar
+## Arpamar
 
 `Alconna` 会将解析的结果包装为一个`Arpamar`返回，你可以通过`Arpamar`获取解析成功的值
 

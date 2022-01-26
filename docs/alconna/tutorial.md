@@ -19,5 +19,12 @@ title: Alconna 介绍
 >>> v.analyse_message("!获取円香的涩图").header
 '円香'
 ```
+
+## 安装
+pip
+```
+pip install --upgrade arclet-alconna
+```
+
 ## 性能参考
 在 i5-10210U 处理器上, `Alconna` 的性能大约为 `36000~71000 msg/s`, 取决于 `Alconna` 的复杂程度

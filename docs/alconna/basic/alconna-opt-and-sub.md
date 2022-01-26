@@ -3,7 +3,7 @@ id: alconna-opt-and-sub
 title: 选项与子命令
 ---
 
-# Option
+## Option
 
 `Option` 是基础的选项类
 ```python
@@ -22,7 +22,7 @@ option = Option("name", args=Args(key1=value1, key2=value2))
 
 `args`的格式为key-value, `key`是作为该参数的说明与查找的，在指令中不需要输入; `value`支持一般字符串、正则表达式与元素类型
 
-## Alias
+### Alias
 `Option` 可以传入alias参数，作为该option的选项别名
 
 构造`Option`时, 以下两种方式是可用的:
@@ -35,7 +35,7 @@ Option("--time| -t", args=Args["sec":int])
 ```
 解析时, `--time 30` 与 `-t 30`都将被成功解析
 
-# Subcommand
+## Subcommand
 
 `Subcommand` 比起 `Option` 更类似于一个单独的`Command`, 当然, 没有命令头
 ```python

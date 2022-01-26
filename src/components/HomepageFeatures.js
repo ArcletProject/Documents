@@ -7,6 +7,7 @@ const FeatureList = [
     title: 'Alconna',
     description: (
       <p>
+        便捷、高效、基于字典的命令解析器
         A Fast Command Analyser based on Dict
       </p>
     ),
@@ -15,6 +16,7 @@ const FeatureList = [
     title: 'Edoves',
     description: (
       <p>
+        基于 Cesloi 的新式抽象框架
         A new abstract framework based on Cesloi
       </p>
     ),
@@ -23,6 +25,7 @@ const FeatureList = [
     title: 'Letoderea',
     description: (
       <p>
+        基于异步框架，高性能、结果简洁的事件系统
         A high-performance, simple-structured event system, relies on asyncio
       </p>
     ),
