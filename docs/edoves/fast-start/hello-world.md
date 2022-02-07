@@ -5,7 +5,7 @@ title: Edoves 快速入门
 
 :::note
 
-截止写作时(2022.1.26), Edoves仅部分实现实现了 MAH 支持, 所以我们在此仅使用来自 mirai/mirai-api-http 的 Tencent QQ 协议支持
+Edoves 最新版本 (0.0.14) 仅部分实现实现了 MAH 支持, 所以我们在此仅使用来自 mirai/mirai-api-http 的 Tencent QQ 协议支持
 
 但理论上, 以下实现也应可以使用:
 - miraigo/onebot(go-cqhttp)
@@ -17,7 +17,7 @@ title: Edoves 快速入门
 ## 准备工作
 
 我们假设在你使用 Edoves 前已经阅读了[`mirai-console-loader`](https://github.com/iTXTech/mirai-console-loader) 与 [`mirai-api-http`](https://github.com/mamoe/mirai-api-http) 的 README, 
-并且通过类似 `mirai-console-wrapper` / `miraiOK` / `MiraiAndroid` 的方式启动了你的 `mirai-console` , 同时也安装了最新版本的 `mirai-api-http` 插件. 
+并且启动了你的 `mirai-console` , 同时也安装了最新版本的 `mirai-api-http` 插件. 
 
 ### python
 
@@ -43,8 +43,9 @@ pip install --upgrade arclet-edoves
 将以下代码保存到文件 `bot.py` 内, 确保该文件位于你的工作区内:
 ```python
 from arclet.edoves.builtin.mah.module import MessageModule
+from arclet.edoves.builtin.mah import MAHConfig
 from arclet.edoves.builtin.medium import Message
-from arclet.edoves.builtin.event.message import AllMessage
+from arclet.edoves.builtin.event.message import MessageReceived
 from arclet.edoves.builtin.client import AioHttpClient
 from arclet.edoves.main import Edoves
 
@@ -55,16 +56,16 @@ async def test_message_reaction(message: Message):
 
 
 app = Edoves(
-    profile={
-        "verify_token": "INITKEYWylsVdbr",  # 与 setting.yml 中的 verifyKey 一致
-        "port": "9080",  # 与 setting.yml 中的 port 一致
-        "client": AioHttpClient,
-        "account": 3542928737  # 你所使用的qq号
-    }
+    configs={
+        "MAH-default": (
+            MAHConfig,
+            {"verify_token": "INITKEYWylsVdbr", "port": "9080", "client": AioHttpClient, "account": 3542928737}
+        )
+    },
 )
 
-message_module = app.scene.activate_module(MessageModule)
-message_module.add_handler(AllMessage, test_message_reaction)
+message_module = app['MAH-default'].activate_module(MessageModule)
+message_module.add_handler(MessageReceived, test_message_reaction)
 
 app.run()
 ```
@@ -81,7 +82,16 @@ app.run()
 
 ```
 
-当出现 `MAHServerDocker connected.` 后, 请尝试与机器人账号发起好友对话, 如果你向机器人发送 Hello , 并且机器人向你发出 Hello, World! 的话, 恭喜你, 你就已经实现了一个Edoves应用了.
+当出现 `MAHServerDocker connected.` 后, 请尝试与机器人账号发起好友对话, 如果你向机器人发送 Hello , 
+并且机器人向你发出 Hello, World! 的话, 恭喜你, 你就已经实现了一个Edoves应用了.
+
+<div>
+    <ul>
+        <li class="chat right">Hello</li>
+        <li class="chat left">Hello World!</li>
+    </ul>
+</div>
+
 
 > 停下来？ 按 Ctrl + C 停止。
 

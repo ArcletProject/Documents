@@ -7,6 +7,8 @@ title: Edoves 介绍
 
 [`Edoves`](https://github.com/ArcletProject/Edoves) 是 `Arclet Project` 基于同项目下的 `Cesloi`的 **第二代** 框架实现, 
 
+`Edoves`的目标是实现简易的、学习成本低的、扩展性良好的机器人框架，并且能够提供给用户一个简单的框架使用方式。
+
 **该框架目前处于快速迭代状态, API 可能会发生 _剧烈_ 变化, 可能还不适合进行生产性的开发与运维**
 
 ## 安装

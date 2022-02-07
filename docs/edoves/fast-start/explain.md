@@ -1,5 +1,5 @@
 ---
-id: hello-world
+id: explain
 title: 程序解析
 ---
 
@@ -46,20 +46,30 @@ QQ 的消息不只是文本形式，所以 mirai 采用了消息链来表示富�
 
 ```python
 app = Edoves(
-    profile={"verify_token": "INITKEYWylsVdbr", "port": "9080", "client": AioHttpClient, "account": 3542928737
-    }
+    configs={
+        "MAH-default": (
+            MAHConfig, {"verify_token": "INITKEYWylsVdbr", "port": "9080", "client": AioHttpClient, "account": 3542928737}
+        )
+    },
 )
 ```
+`Edoves`需要的主要参数为configs传入的一系列scene相关参数。
+
+`configs`传入的是一个字典对象, 该字典的键是`scene`的名称, 并作为该`scene`的标识符; 值是一个元组, 
+
+该元组的第一个元素是一个特定的**配置**类, 该配置规定了`scene`的基本配置, 如protocol的选择、服务对接端的选择等。
+
+该元组的第二个元素是一个字典, 用来传入`config`的必要参数。该字典的键是配置类的属性名, 值是配置类的属性值。
 
 `AioHttpClient`是一个`NetworkClient`类型, 负责实际的网络操作。`AioHttpClient`为`NetworkClient`的`aiohttp`实现
 
 接着, 我们激活了一个模块, 用来搭载处理器:
 ```python
-message_module = app.scene.activate_module(MessageModule)
+message_module = app['MAH-default'].activate_module(MessageModule)
 ```
 :::caution
 
-`Module`要求其必须有静态变量`identifier`，来验证其可用性
+`Module`要求其必须有静态变量`verify_code`，来验证其可用性
 
 当验证失败时, 该模块激活失败, 并且日志警告：XXX does not supply the dock server you chosen
 
@@ -67,10 +77,12 @@ message_module = app.scene.activate_module(MessageModule)
 
 随后，如果激活成功，我们将处理器搭载在该模块上：
 ```python
-message_module.add_handler(AllMessage, test_message_reaction)
+message_module.add_handler(MessageReceived, test_message_reaction)
 ```
-`AllMessage`是一个事件类型, 代表所有消息事件, 并作为该处理器处理的事件
+`MessageReceived`是一个事件类型, 代表收到消息事件, 并作为该处理器处理的事件
 
 最后，我们调用了`run`方法，来启动机器人。这一方法会进入事件循环，一直运行。
 
+```python
 app.run()
+```

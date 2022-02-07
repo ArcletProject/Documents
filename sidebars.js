@@ -22,7 +22,7 @@ module.exports = {
         },
         {
           type: 'category',
-          label: "Alconna基础",
+          label: "Alconna 基础",
           items: [
             'alconna-construct',
             'alconna-template-command',
@@ -32,7 +32,7 @@ module.exports = {
         },
         {
           type: 'category',
-          label: "Alconna细节",
+          label: "Alconna 细节",
           items: [
             'special-construct',
             'help-doc',
@@ -53,8 +53,15 @@ module.exports = {
           label: "入门",
           items: [
             'hello-world',
-            'explain'
+            'explain',
           ].map(value => `edoves/fast-start/${value}`)
+        },
+        {
+          type: 'category',
+          label: "基础",
+          items: [
+            'scene',
+          ].map(value => `edoves/edoves-basic/${value}`)
         },
       ]
     },
