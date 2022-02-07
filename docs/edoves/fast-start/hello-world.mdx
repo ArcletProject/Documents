@@ -85,13 +85,12 @@ app.run()
 当出现 `MAHServerDocker connected.` 后, 请尝试与机器人账号发起好友对话, 如果你向机器人发送 Hello , 
 并且机器人向你发出 Hello, World! 的话, 恭喜你, 你就已经实现了一个Edoves应用了.
 
-<div>
-    <ul>
-        <li class="chat right">Hello</li>
-        <li class="chat left">Hello World!</li>
-    </ul>
-</div>
+import { ChatBox, ChatMessage } from "@site/src/components/ChatMessage.js";
 
+<ChatBox>
+  <ChatMessage name="Abylanc" msg="Hello" />
+  <ChatMessage name="Edoves" msg="Hello, World!" />
+</ChatBox>
 
 > 停下来？ 按 Ctrl + C 停止。
 
