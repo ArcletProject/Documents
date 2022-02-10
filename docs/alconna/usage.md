@@ -7,7 +7,7 @@ title: Alconna 的应用
 
 `Alconna` 的 `command`支持写入正则表达式, 所以以下命令是可以的
 
-```python
+```pycon
 >>> w = Alconna(command=f"查询{AnyStr}天气")
 >>> d = Alconna(headers=["."], command=f"d{AnyDigit}")
 >>> w.analyse_message("查询北京天气").header
@@ -20,7 +20,7 @@ title: Alconna 的应用
 
 `Option` 与 `Subcommand` 的 `args` 可以填入不止一个参数，所以以下命令是可以的
 
-```python
+```pycon
 >>> cal = Alconna(command="Cal",options=[Option("-sum", num_a=AnyDigit, num_b=AnyDigit)])
 >>> msg = "Cal -sum 12 23"
 >>> cal.analyse_message(msg).get('sum')
@@ -36,7 +36,7 @@ title: Alconna 的应用
 
 `Alconna` 不强制 shell-like 的指令，所以以下命令是可以的
 
-```python
+```pycon
 >>> alc = Alconna(
 ...     command=f"{AnyStr}今天", 
 ...     main_args=Args["item":AnyParam],
@@ -55,7 +55,7 @@ title: Alconna 的应用
 注: 该特性为`0.5.3`以上
 
 `headers`可以传入消息元素, 所以以下是可以的:
-```python
+```pycon
 >>> test = Alconna(
 ...     headers=[At(12345)],
 ...     command="丢漂流瓶",

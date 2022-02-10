@@ -26,6 +26,7 @@ module.exports = {
           items: [
             'alconna-construct',
             'alconna-template-command',
+            'alconna-args',
             'alconna-opt-and-sub',
             'alconna-arpamar',
           ].map(value => `alconna/basic/${value}`)
@@ -34,13 +35,13 @@ module.exports = {
           type: 'category',
           label: "Alconna 细节",
           items: [
-            'special-construct',
             'help-doc',
-            'alconna-args',
             'alconna-pattern',
+            'alconna-parse-order'
           ].map(value => `alconna/detail/${value}`)
         },
-        'alconna/usage'
+        'alconna/usage',
+        'alconna/manager'
       ]
     },
     {
@@ -60,6 +61,7 @@ module.exports = {
           type: 'category',
           label: "基础",
           items: [
+            'interact',
             'scene',
           ].map(value => `edoves/edoves-basic/${value}`)
         },

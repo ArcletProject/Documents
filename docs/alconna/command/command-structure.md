@@ -10,10 +10,11 @@ title: 命令结构
 sdist upload -r pypi
 ```
 
-当我们以json结构去表示这个命令时, 有大致两种结构:
+当我们以json结构去表示这个命令时, 有大致两种结构
 
+a:
 ```json5
-a = {
+{
   "main": {
     "name": "sdist",
     "separate": " ",
@@ -30,8 +31,10 @@ a = {
     }
   ]
 }
-
-b = {
+```
+b:
+```json5
+{
   "name": "sdist",
   "separate": " ",
   "args": [

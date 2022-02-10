@@ -25,6 +25,7 @@ title: 解析顺序
 
 可在构造`Alconna`时
 ```python
+from arclet.alconna import Alconna
 Alconna(..., order_parse=True)
 ```
 选择有序解析
@@ -47,7 +48,7 @@ Alconna(..., order_parse=True)
 
 当同类命令再次出现时, `Alconna`将跳过解析部分, 直接根据匹配节点获取可能的数据并返回
 
-```
+```pycon
 # 首次解析
 matched=True head_matched=True error_data=[] _options={'foo': {'bar': At(target=123)}} _other_args={'bar': At(target=123)} _main_args={}
 # 缓存机制生效

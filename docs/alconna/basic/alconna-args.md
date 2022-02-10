@@ -8,10 +8,12 @@ title: 命令参数
 `Args` 是一个特殊的类，用来包装`command`中的`args`, 即命令参数, 如
 
 ```python
+from arclet.alconna import Args, AnyStr, AnyDigit, Option
 opt = Option("test", args=Args(foo=AnyStr, num=AnyDigit).default(foo="bar"))
 ```
 或
 ```python
+from arclet.alconna import Args, Option
 opt = Option("test", args=Args["foo":str:"bar", "num":int])
 ```
 
@@ -21,10 +23,16 @@ opt = Option("test", args=Args["foo":str:"bar", "num":int])
 
 :::
 
-`Args` 构造时需要格式为key-value的多个参数, 或传入多个slice对象
+:::caution
+
+`AnyStr`这一类可以format进普通字符中, 作为正则表达式, 但是`str`肯定不行
+
+:::
+
+`Args` 构造时需要格式为Key-Value-OptionalDefault的多个参数, 或传入多个slice对象
 
 推荐使用Args相关的魔术方法，如
-```python
+```pycon
 >>> ar = Args["test":bool:"True"]["aaa":str:"bbb"] << Args["perm":AnyStr:"de"] + ["month", AnyDigit]
 >>> ar["foo"] = ["bar", ...]
 >>> ar
@@ -46,6 +54,7 @@ Args('test': '(True|False)' = 'True', 'aaa': '(.+)' = 'bbb', 'perm': '(.+)' = 'd
 对于同个命令, `/test foo bar 123` 来讲
 
 ```python
+from arclet.alconna import AnyParam, AllParam, Alconna, Args
 test1 = Alconna(
         command="/test",
         main_args=Args["wild":AnyParam],

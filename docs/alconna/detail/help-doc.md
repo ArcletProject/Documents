@@ -3,11 +3,12 @@ id: help-doc
 title: 内置帮助文档
 ---
 
-## Help Doc
+## Help String
 `Alconna` 支持通过`XXX.help("XXX")`来写入帮助说明,
 
-以上面的指令为例：
+以前面的指令为例：
 ```python
+from arclet.alconna import Alconna, Subcommand, Option
 pip = Alconna(
     command="/pip",
     options=[
@@ -22,17 +23,16 @@ pip = Alconna(
         Option("--retries", retries=int).help("设置尝试次数"),
         Option("-t| --timeout", sec=int).help("设置超时时间"),
         Option("--exists-action", ex_action=str).help("添加行为"),
-        Option("--trusted-host", hostname=AnyUrl).help("选择可信赖地址")
+        Option("--trusted-host", hostname="url").help("选择可信赖地址")
     ]
 ).help("pip指令")
-```
-然后
-```python
+
 print(pip.get_help())
 ```
-则有
+则控制台会输出
 ```
-/pip 
+/pip
+pip指令
 可用的子命令有:
 # 安装一个包
   install <pak>
@@ -57,3 +57,33 @@ print(pip.get_help())
 ```
 
 `Alconna` 会自动判别每个command中的`Args`并转为参数列
+
+## 内置选项 -h|--help
+
+`Alconna` 会自动添加一个`-h|--help`选项，
+
+当输入`xxx --help`或`xxx -h`时，`Alconna`会自动调用`xxx.get_help()`并传递给
+Help选项的action中.
+
+您可以使用`alconna.change_help_send_action()`来改变`-h|--help`的行为.
+
+例如:
+```python
+from arclet.alconna import Alconna, change_help_send_action
+change_help_send_action(lambda x: print(x))
+alc = Alconna(
+    command="test", foo=str, bar=int
+).help("测试help直接发送")
+```
+
+当解析的消息为```test --help```时，会输出
+```
+test <foo> <bar>
+测试help直接发送
+```
+
+:::caution
+
+Help选项一旦被解析，则会自动判别为解析失败, 以防止后续的参数解析错误
+
+:::

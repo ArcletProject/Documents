@@ -1,0 +1,239 @@
+---
+id: alconna-construct
+title: 构造 Alconna
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+## Alconna 结构
+
+:::caution 前提
+
+**确保您已阅读关于`命令结构`的部分**
+
+:::
+
+一个`Alconna`实例的主要结构如下:
+```
+Alconna
+├── header=["command_headers"]
+├── command="command_name"
+├── options
+│   │── Subcommand
+│   │   │── name="sub_name"
+│   │   │── sub_options
+│   │   │   │── Option
+│   │   │   │   │── name="sub_opt_name"
+│   │   │   │   └── sub_opt_arg
+│   │   │   └── ...
+│   │   └── sub_main_arg  
+│   │── Option
+│   │   │── name="opt_name"
+│   │   └── opt_arg
+│   └── ...
+└── main_args
+ 
+```
+`Alconna`支持四大类参数：
+- `headers` : 呼叫该命令的命令头，一般是你的机器人的名字或者符号，与 `command` 至少有一个填写. 例如: /, !; 0.5.3中支持传入非文本消息
+- `command` : 命令名称，你的命令的名字，与 `headers` 至少有一个填写
+- `options` : 命令选项，你的命令可选择的所有 `option`,是一个包含 `Subcommand` 与 `Option` 的列表
+- `main_args` : 主参数，填入后当且仅当命令中含有该参数时才会成功解析
+
+其中
+- command_head: 命令头
+- command_name: 命令名称
+- sub_name: 子命令名称
+- sub_opt_name: 子命令选项名称
+- sub_opt_arg: 子命令选项参数
+- sub_main_arg: 子命令主参数
+- opt_name: 命令选项名称
+- opt_arg: 命令选项参数
+
+解析时，先判断命令头(即 headers + command), 再判断options与main args, 这里options与main args在输入指令时是不分先后的
+
+## 构造方法
+
+`Alconna` 目前提供了4种构造方式:
+- typical
+- koishi-like
+- formatter 
+- iterable
+- 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs groupId="classify">
+    <TabItem value="typical" label="标准方式">
+        可以传入全部参数的构造方式
+    </TabItem>
+    <TabItem value="koishi" label="字符串方式">
+        无法传入子命令与报错选项
+    </TabItem>
+    <TabItem value="format" label="格式化方式">
+        无法写入帮助信息
+    </TabItem>
+    <TabItem value="iterable" label="迭代参数方式">
+        最简易的构造方式
+    </TabItem>
+</Tabs>
+
+<Tabs groupId="classify">
+    <TabItem value="typical" label="标准方式">
+        ```python
+        alc = Alconna(...)
+        ```
+    </TabItem>
+    <TabItem value="koishi" label="字符串方式">
+        ```python
+        alc = Alconna.from_string(...)
+        ```
+    </TabItem>
+    <TabItem value="format" label="格式化方式">
+        ```python
+        alc = Alconna.format(...)
+        ```
+    </TabItem>
+    <TabItem value="iterable" label="迭代参数方式">
+        ```python
+        alc = Alconna.simple(...)
+        ```
+    </TabItem>
+</Tabs>
+
+### Koishi-like
+`Alconna` 的koishi-like形式的构造方法, 如
+```python
+from arclet.alconna import Alconna
+Alconna.set_custom_types(digit=int)
+alc = Alconna.from_string(
+     "[tt|test_type] <wild> <text:str> <num:digit> <boolean:bool:False> #测试命令",
+     "--foo|-f [True]"
+)
+```
+
+它与如下是等效的:
+```python
+from arclet.alconna import Alconna, Option, store_bool, Args, AnyParam
+alc = Alconna(
+    headers=["tt", "test_type"],
+    options=[
+        Option("--foo", alias='-f', actions=store_bool(True))
+    ],
+    main_args=Args["wild":AnyParam, "text":str, "num":int, "boolean":bool:False]
+)
+```
+`<xxx>`代表参数, 如`<value:int>`等价于`Args['value':int]`, `<message>`等价于`Args['message':AnyParam]`
+
+:::caution 注意!
+
+如果写入了`<...xxx>`, 此参数表示该处为 `AllParam`, 会截断之后的解析操作
+
+:::
+
+针对option, `[xxx]`参数代表`store_val(xxx)`的`action`
+
+`#xxx` 代表该命令节点的帮助信息, 若不写入则默认帮助信息为命令名
+
+### Formatter
+`Alconna` 的formatter形式的构造方法:
+
+```python
+from arclet.alconna import Alconna, Args
+alc = Alconna.format(
+    "lp user {target} perm set {perm} {value}", 
+    {"target": str, "perm": str, "value": Args["value":bool:True]}
+)
+```
+
+它与如下是等效的:
+```python
+from arclet.alconna import Alconna, Subcommand, Option, Args
+alc = Alconna(
+    command="lp",
+    options=[
+        Option("user", Args["target":str]),
+        Subcommand(
+            "perm", 
+            Option("set", Args["perm":str]), 
+            args=Args["value":bool:True]
+        )
+    ]
+)
+```
+
+### Iterable
+
+该方式十分简易, 只能构造含有主参数的命令:
+```python
+from arclet.alconna import Alconna
+alc = Alconna.simple("test", ("foo", str), ("bar", int, 123))
+```
+
+它与如下是等效的:
+```python
+from arclet.alconna import Alconna, Args
+alc = Alconna(
+    command="test",
+    main_args=Args["foo":str,, "bar":int:123]
+)
+```
+
+## 命令样例
+现在，我们假设一命令如下:
+```
+/pip
+Usage:
+  /pip <command> [options]
+
+Commands:
+  install                     Install packages.
+  list                        List installed packages.
+  show                        Show information about installed packages.
+  help                        Show help for commands.
+
+General Options:
+  --help                      Show help.
+  --retries <retries>         Maximum number of retries each connection should attempt (default 5 times).
+  --timeout <sec>             Set the socket timeout (default 15 seconds).
+  --exists-action <action>    Default action when a path already exists: (s)witch, (i)gnore, (w)ipe, (b)ackup, (a)bort.
+  --trusted-host <hostname>   Mark this host or host:port pair as trusted, even though it does not have valid or any HTTPS.
+```
+
+根据上述的Alconna结构与前文的命令结构分析，我们可以得到这样的 `Alconna`:
+```python
+from arclet.alconna import Alconna, Option, Subcommand
+pip = Alconna(
+    command="/pip",
+    options=[
+        Subcommand(
+            "install",
+            Option("--upgrade"),
+            pak=str,
+        ),
+        Subcommand(
+            "show",
+            pak=str,
+        ),
+        Subcommand(
+            "help",
+            command=str,
+        ),
+        Option("list"),
+        Option("--help"),
+        Option("--retries", retries=int),
+        Option("--timeout", sec=int, alias='-t'),
+        Option("--exists-action", ex_action=str, alias='-ea'),
+        Option("--trusted-host", hostname="url", alias='-th')
+    ]
+)
+```
+现在你可以尝试如下输入:
+```pycon
+>>> pip.analyse_message("/pip install cesloi --upgrade --trusted-host http://pypi.douban.com/simple").option_args
+```
+正常情况下, 会输出：
+```pycon
+{'upgrade': Ellipsis, 'pak': 'cesloi', 'hostname': 'http://pypi.douban.com/simple'}
+```
