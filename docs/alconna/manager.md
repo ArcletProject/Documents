@@ -1,6 +1,6 @@
 ---
 id: manager
-title: Alconna 命令管理器
+title: 命令管理器
 ---
 
 ## CommandManager

@@ -1,11 +1,25 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require('prism-react-renderer/themes/github');
+const lightCodeTheme = require('prism-react-renderer/themes/oceanicNext');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
+
+};
+
+module.exports = {
+  i18n: {
+    defaultLocale: "zh-CN",
+    locales: ["zh-CN"],
+    localeConfigs: {
+      "zh-CN": {
+        label: "简体中文",
+        direction: "ltr",
+      },
+    },
+  },
   title: 'Arclet Project Document',
   tagline: 'Docs for Alconna, Edoves and so on',
   url: 'https://arcletproject.github.io',
@@ -31,7 +45,7 @@ const config = {
       }),
     ],
   ],
-
+  themes: ['@docusaurus/theme-live-codeblock'],
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
@@ -112,8 +126,7 @@ const config = {
       prism: {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
+        additionalLanguages: ['powershell'],
       },
     }),
 };
-
-module.exports = config;

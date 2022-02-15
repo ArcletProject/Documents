@@ -30,7 +30,7 @@ test_type = ArgPattern(
 * 若相应的`Arg`会传入`Action`中, 在类型检查时该`Arg`的type-hint应为`list`
 * 针对该`Arg`的类型转换函数 (str -> list)
 
-```pycon
+```python
 >>> alc = Alconna(
 ... command="test",
 ... main_args=Args["foo":test_type]

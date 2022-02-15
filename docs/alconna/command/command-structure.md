@@ -13,7 +13,7 @@ sdist upload -r pypi
 当我们以json结构去表示这个命令时, 有大致两种结构
 
 a:
-```json5
+```json
 {
   "main": {
     "name": "sdist",
@@ -33,7 +33,7 @@ a:
 }
 ```
 b:
-```json5
+```json
 {
   "name": "sdist",
   "separate": " ",
@@ -70,7 +70,7 @@ b:
 `/`是命令头, `ping`是命令名称, ` `是命令分隔符, `127.0.0.1`是命令参数
 
 以json表示就是
-```json5
+```json
 {
   "header": "/",
   "main": {

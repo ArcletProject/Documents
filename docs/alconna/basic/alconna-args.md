@@ -32,7 +32,7 @@ opt = Option("test", args=Args["foo":str:"bar", "num":int])
 `Args` 构造时需要格式为Key-Value-OptionalDefault的多个参数, 或传入多个slice对象
 
 推荐使用Args相关的魔术方法，如
-```pycon
+```python
 >>> ar = Args["test":bool:"True"]["aaa":str:"bbb"] << Args["perm":AnyStr:"de"] + ["month", AnyDigit]
 >>> ar["foo"] = ["bar", ...]
 >>> ar

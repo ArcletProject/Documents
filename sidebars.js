@@ -20,11 +20,12 @@ module.exports = {
             'command-structure',
           ].map(value => `alconna/command/${value}`)
         },
+        'alconna/entry',
+
         {
           type: 'category',
-          label: "Alconna 基础",
+          label: "组件",
           items: [
-            'alconna-construct',
             'alconna-template-command',
             'alconna-args',
             'alconna-opt-and-sub',
@@ -33,15 +34,27 @@ module.exports = {
         },
         {
           type: 'category',
-          label: "Alconna 细节",
+          label: "构造方法",
+          items: [
+            'typical',
+            'koishi-like',
+            'format',
+            'simple',
+            'click-like',
+          ].map(value => `alconna/constructs/${value}`)
+        },
+        {
+          type: 'category',
+          label: "细节",
           items: [
             'help-doc',
             'alconna-pattern',
-            'alconna-parse-order'
+            'parse-order'
           ].map(value => `alconna/detail/${value}`)
         },
         'alconna/usage',
-        'alconna/manager'
+        'alconna/commandline',
+        'alconna/manager',
       ]
     },
     {

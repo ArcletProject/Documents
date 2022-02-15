@@ -31,6 +31,7 @@
     "react-expand-animated": "^1.0.2",
     "react-icons": "^4.2.0",
     "react-intersection-observer": "^8.33.1",
+    "react-animated-term": "2.0.0",
     "url-loader": "^4.1.1"
   },
   "browserslist": {

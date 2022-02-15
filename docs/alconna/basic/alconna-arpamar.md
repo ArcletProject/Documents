@@ -30,7 +30,7 @@ title: 解析结果
 
 
 另外, 可直接通过`Arpamar.xxx` 来获取 `xxx`参数
-```pycon
+```python
 >>> alc = Alconna(
 ...     command="test",
 ...     options=[
