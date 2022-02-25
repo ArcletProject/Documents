@@ -1,0 +1,35 @@
+---
+id: much-args
+title: Args可不只能传入一个参数
+---
+
+## 选项的多参数
+
+`Args` 可以填入不止一个参数，所以以下命令是可以成功解析的
+
+```python
+from arclet.alconna import Alconna, Args, Option
+cal = Alconna(
+    command="Cal",
+    options=[
+        Option("-sum"),
+        Option("-div"),
+        Option(
+            "--round", 
+            Args["decimal":int]
+        ),
+    ],
+    main_args=Args["num_a":int, "num_b":int]
+)
+```
+
+import { TerminalApp } from "@site/src/components/Teminal.js";
+import {much_args} from "@site/src/components/commandlines.js";
+
+<TerminalApp lines={much_args} height={220}/>
+
+:::tip PS.
+
+Alconna在解析完成后会把破折线给过滤掉
+
+:::

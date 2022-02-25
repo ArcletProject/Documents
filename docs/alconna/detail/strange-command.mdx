@@ -1,0 +1,18 @@
+---
+id: strange-command
+title: 奇怪的命令
+---
+
+## 正则命令头
+
+`Alconna` 的 `header` 与 `command`支持写入正则表达式, 所以以下命令是可以的
+
+```python
+w = Alconna(command=f"查询{AnyStr}天气")
+d = Alconna(headers=[".ra", f".d{AnyDigit}"])
+```
+
+import { TerminalApp } from "@site/src/components/Teminal.js";
+import {strange} from "@site/src/components/commandlines.js";
+
+<TerminalApp lines={strange} height={240}/>

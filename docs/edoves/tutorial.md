@@ -1,9 +1,11 @@
 ---
 id: tutorial
-title: Edoves 介绍
+title: Edoves 导语
 ---
 
-## Edoves
+## 介绍
+
+> 埃铎维斯(Edoves), 正在努力模仿高塔上的贤者
 
 [`Edoves`](https://github.com/ArcletProject/Edoves) 是 `Arclet Project` 基于同项目下的 `Cesloi`的 **第二代** 框架实现, 
 
@@ -16,6 +18,9 @@ pip
 ```
 pip install --upgrade arclet-edoves
 ```
+
+## 特点
+- 抽象化
 
 ## 开源协议
 

@@ -8,22 +8,21 @@ title: 内置帮助文档
 
 以前面的指令为例：
 ```python
-from arclet.alconna import Alconna, Subcommand, Option
+from arclet.alconna import Alconna, Subcommand, Option, Args
 pip = Alconna(
     command="/pip",
     options=[
         Subcommand(
-            "install", 
-            Option("--upgrade").help("升级包"), 
-            pak=str
+            "install", Option("--upgrade").help("升级包"), 
+            args=Args["pak":str]
         ).help("安装一个包"),
-        Subcommand("show", pak=str).help("显示一个包的信息"),
-        Subcommand("help", command=str).help("显示一个指令的帮助"),
+        Subcommand("show", args=Args["pak":str]).help("显示一个包的信息"),
+        Subcommand("help", args=Args["command":str]).help("显示一个指令的帮助"),
         Option("list").help("列出所有安装的包"),
-        Option("--retries", retries=int).help("设置尝试次数"),
-        Option("-t| --timeout", sec=int).help("设置超时时间"),
-        Option("--exists-action", ex_action=str).help("添加行为"),
-        Option("--trusted-host", hostname="url").help("选择可信赖地址")
+        Option("--retries", Args["retries":int]).help("设置尝试次数"),
+        Option("-t| --timeout", Args["sec":int]).help("设置超时时间"),
+        Option("--exists-action", Args["action":str]).help("添加行为"),
+        Option("--trusted-host", Args["host":"url"]).help("选择可信赖地址")
     ]
 ).help("pip指令")
 

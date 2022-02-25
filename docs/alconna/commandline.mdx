@@ -18,3 +18,34 @@ import { TerminalApp } from "@site/src/components/Teminal.js";
 import {alconna} from "@site/src/components/commandlines.js";
 
 <TerminalApp lines={alconna} height={480}/>
+
+## create指令
+
+该指令用来辅助入门者快速创建一个 `Alconna` 命令.
+
+```
+create
+开始创建 Alconna 命令
+可用的选项有:
+# 指定命令名称
+  -C, --command <command_name>
+# 传入命令头
+  -H, --header <command_header>
+# 创建命令选项
+  -O, --option <option_name> <option_args, default=[]>
+# 从已经分析的命令结构中创建Alconna
+  -A, --analysed
+```
+
+## analysis指令
+
+该指令用来将一个普通的命令解析为以字典形式表示的命令结构.
+
+
+## using指令
+
+该指令需要配合`create`来使用, 它用来执行在cli中创建好的`Alconna`指令, 并输出对应的解析结果.
+
+## help指令
+
+该指令用来快速查看Api文档.

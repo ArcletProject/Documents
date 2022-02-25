@@ -1,0 +1,29 @@
+---
+id: custom-sep
+title: 不止是命令解析……
+---
+
+## 自定义分隔符
+
+~~NLP~~ (大雾)
+
+`Alconna` 不强制 shell-like 的指令, 即支持自定义分隔符, 所以以下命令是可以的
+
+```python
+alc = Alconna(
+    command=f"{AnyStr}今天",
+    main_args=Args["item":AnyParam],
+    actions=lambda x: x.split("和")
+).separate("吃")
+```
+import { TerminalApp } from "@site/src/components/Teminal.js";
+import {custom_sep} from "@site/src/components/commandlines.js";
+
+
+<TerminalApp lines={custom_sep} height={200}/>
+
+:::tip PS.
+
+如果你想用空字符串作为分隔符的话,为什么不试试第一种写法呢？
+
+:::

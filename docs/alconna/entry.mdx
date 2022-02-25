@@ -17,19 +17,19 @@ import TabItem from '@theme/TabItem';
 一个`Alconna`实例的主要结构如下:
 ```
 Alconna
-├── header=["command_headers"]
-├── command="command_name"
+├── command_headers
+├── command_name
 ├── options
 │   │── Subcommand
-│   │   │── name="sub_name"
+│   │   │── sub_name
 │   │   │── sub_options
 │   │   │   │── Option
-│   │   │   │   │── name="sub_opt_name"
+│   │   │   │   │── sub_opt_name
 │   │   │   │   └── sub_opt_arg
 │   │   │   └── ...
 │   │   └── sub_main_arg
 │   │── Option
-│   │   │── name="opt_name"
+│   │   │── opt_name
 │   │   └── opt_arg
 │   └── ...
 └── main_args
@@ -37,7 +37,7 @@ Alconna
 ```
 
 其中
-- command_head: 命令头
+- command_headers: 命令头
 - command_name: 命令名称
 - sub_name: 子命令名称
 - sub_opt_name: 子命令选项名称
@@ -57,27 +57,10 @@ Alconna
 - [iterable](./constructs/simple.md)
 - [click-like](./constructs/click-like.md)
 
-<Tabs groupId="classify">
-<TabItem value="typical" label="标准方式">
-    可以传入全部参数的构造方式
-</TabItem>
-<TabItem value="koishi" label="字符串方式">
-    无法传入子命令与报错选项
-</TabItem>
-<TabItem value="format" label="格式化方式">
-    无法写入帮助信息、命令头与选项别名
-</TabItem>
-<TabItem value="iterable" label="迭代参数方式">
-    最简易的构造方式
-</TabItem>
-<TabItem value="click" label="装饰器方式">
-    无法传入子命令与报错选项
-</TabItem>
-</Tabs>
-
 
 <Tabs groupId="classify">
 <TabItem value="typical" label="标准方式">
+可以传入全部参数的构造方式
 
 ```python
 alc = Alconna(...)
@@ -85,6 +68,7 @@ alc = Alconna(...)
 
 </TabItem>
 <TabItem value="koishi" label="字符串方式">
+无法传入子命令与报错选项
 
 ```python
 alc = Alconna.from_string(...)
@@ -92,6 +76,7 @@ alc = Alconna.from_string(...)
 
 </TabItem>
 <TabItem value="format" label="格式化方式">
+无法写入帮助信息、命令头与选项别名
 
 ```python
 alc = Alconna.format(...)
@@ -99,6 +84,7 @@ alc = Alconna.format(...)
 
 </TabItem>
 <TabItem value="iterable" label="迭代参数方式">
+最简易的构造方式
 
 ```python
 alc = Alconna.simple(...)
@@ -106,6 +92,7 @@ alc = Alconna.simple(...)
 
 </TabItem>
 <TabItem value="click" label="装饰器方式">
+无法传入子命令与报错选项
 
 ```python
 alc = AlconnaDecorate(...)
@@ -176,7 +163,7 @@ if __name__ == "__main__":
 
 ```
 
-# 现在你可以尝试如下输入:
+现在你可以尝试如下输入:
 ```powershell
 python test_alconna.py "/pip install cesloi --upgrade --trusted-host http://pypi.douban.com/simple"
 ```

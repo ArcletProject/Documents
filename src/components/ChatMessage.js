@@ -33,6 +33,10 @@ function Avatar(props) {
 }
 
 class ChatBox extends React.Component {
+  constructor(props) {
+    super(props);
+    this.title = props.title;
+  }
   render() {
     return (
       <div className={styles.panelView}>
@@ -40,7 +44,7 @@ class ChatBox extends React.Component {
           <div className={styles.circleRed} />
           <div className={styles.circleYellow} />
           <div className={styles.circleGreen} />
-          <div className={styles.title}>聊天记录</div>
+          <div className={styles.title}>{this.title}</div>
         </div>
         <div className={styles.content}>{this.props.children}</div>
       </div>

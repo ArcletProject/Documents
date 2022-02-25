@@ -12,11 +12,7 @@ title: 选项与子命令
 ## Option
 
 `Option` 是基础的选项类
-```python
-from arclet.alconna.component import Option
-option = Option("name", key1="value1", key2="value2")
-```
-或
+
 ```python
 from arclet.alconna.component import Option, Args
 option = Option("name", args=Args["key1":"value1", "key2":"value2"])
@@ -24,7 +20,7 @@ option = Option("name", args=Args["key1":"value1", "key2":"value2"])
 
 `Option` 需要两类主要参数
 - name: 该 `Option`的名字，必填
-- args: 该 `Option`可能的参数，选填，可用kwargs形式或`Args`
+- args: 该 `Option`可能的参数，选填，可用`Args`或kwargs形式(不推荐)
 
 当只填写了`name`时，`Alconna`会默认该`Option`的参数为 Ellipsis (即"...")
 
@@ -46,11 +42,7 @@ Option("--time| -t", args=Args["sec":int])
 ## Subcommand
 
 `Subcommand` 比起 `Option` 更类似于一个单独的`Command`, 当然, 没有命令头
-```python
-from arclet.alconna.component import Option, Args, Subcommand
-subcommand = Subcommand("name", Option("option1"), Option("option2"), key1="value1", key2="value2")
-```
-或
+
 ```python
 from arclet.alconna.component import Option, Args, Subcommand
 subcommand = Subcommand("name", Option("option1"), Option("option2"), args=Args["key1":"value1", "key2":"value2"])
@@ -59,7 +51,7 @@ subcommand = Subcommand("name", Option("option1"), Option("option2"), args=Args[
 `Subcommand` 需要三类主要参数
 - name: 该 `Option`的名字，必填
 - options: 该`Subcommand`可能的选项，选填，可选多个
-- args: 该 `Option`可能的参数，选填，可用kwargs形式或`Args`
+- args: 该 `Option`可能的参数，选填，可用`Args`或kwargs形式(不推荐)
 
 当只填写了`name`时，`Alconna`会默认该`Subcommand`的参数为 Ellipsis (即"...")
 

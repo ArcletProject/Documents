@@ -53,7 +53,15 @@ alc = Alconna(
 
 :::note
 
-在 v0.5.3 中, 命令头支持传入非文本消息, 例如: ```At(123456)```
+在 v0.5.3 中, 命令头支持传入非文本消息, 例如:
+
+```python
+test = Alconna(
+    headers=[At(12345)],
+    command="丢漂流瓶",
+    main_args=Args["content":AnyParam]
+)
+```
 
 :::
 
@@ -102,7 +110,7 @@ alc = Alconna(
 
 ### main_args
 
-命令主参数, 应当为一个[`Args`](../basic/alconna-args.md)类型的实例. 
+命令主参数, 应当为一个[`Args`](../basic/alconna-args)类型的实例. 
 
 若填入，则仅当命令中含有该参数时才会成功解析
 

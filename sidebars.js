@@ -21,7 +21,6 @@ module.exports = {
           ].map(value => `alconna/command/${value}`)
         },
         'alconna/entry',
-
         {
           type: 'category',
           label: "组件",
@@ -49,12 +48,31 @@ module.exports = {
           items: [
             'help-doc',
             'alconna-pattern',
-            'parse-order'
+            'parse-order',
+            'strange-command',
+            'much-args',
+            'custom-sep',
+            'shortcut'
           ].map(value => `alconna/detail/${value}`)
         },
-        'alconna/usage',
         'alconna/commandline',
         'alconna/manager',
+      ]
+    },
+    {
+      type: 'category',
+      label: 'Letoderea',
+      items:[
+        'letoderea/tutorial',
+        'letoderea/fast-start',
+        {
+          type: 'category',
+          label: "基础",
+          items: [
+            'event',
+            'auxiliary',
+          ].map(value => `letoderea/basic/${value}`)
+        },
       ]
     },
     {

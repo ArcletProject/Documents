@@ -32,7 +32,7 @@ from arclet.alconna.base import TemplateCommand, Args
 TemplateCommand(name='test', args=Args['key1':'value1', 'key2':'value2'])
 ```
 
-关于`Args`的构造方式, 可以参考`Args`的[说明](./alconna-args.md)
+关于`Args`的构造方式, 可以参考`Args`的[说明](./alconna-args)
 
 ## Action
 `TemplateCommand` 可以传入一个`Action`, 这个Action应该是Callable的`function`， 或者是`ArgAction`类的实例

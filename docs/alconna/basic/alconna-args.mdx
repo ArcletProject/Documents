@@ -33,10 +33,10 @@ opt = Option("test", args=Args["foo":str:"bar", "num":int])
 
 推荐使用Args相关的魔术方法，如
 ```python
->>> ar = Args["test":bool:"True"]["aaa":str:"bbb"] << Args["perm":AnyStr:"de"] + ["month", AnyDigit]
->>> ar["foo"] = ["bar", ...]
+>>> ar = Args["test":bool:True]["aaa":str:"bbb"] << Args["perm":AnyStr:"de"] + ["month", int]
 >>> ar
-Args('test': '(True|False)' = 'True', 'aaa': '(.+)' = 'bbb', 'perm': '(.+)' = 'de', 'month': '(\d+)', 'foo': 'bar' = '<class 'inspect._empty'>')
+Args('test': '(True|False)' = 'True', 'aaa': '(.+)' = 'bbb', 'perm': '(.+)' = 'de', 'month': '(\d+)')
+>>> ar["foo"] = ["bar", ...]
 >>> ar["foo"]
 ('bar', <class 'inspect._empty'>)
 ```
@@ -74,3 +74,33 @@ test2 = Alconna(
 `AllParam`会直接截断后续的命令解析操作, 请谨慎使用
 
 :::
+
+## choice args
+
+通过在`value`传入一个列表, 可以限定解析时参数的取值范围
+
+```python
+from arclet.alconna import Args, Option
+opt = Option("test", Args["foo":["bar", "baz"]])
+```
+
+当`foo`的值不在`["bar", "baz"]`中时, `Alconna`会报错
+
+## multi args
+
+通过在`key`前面加上`*`号, 可以让该`value`可以接受指定类型的不定数量的参数
+
+其类似于函数形参的`*args`, 但不会像`AllParam`一样截断解析操作
+
+```python
+from arclet.alconna import Args, Option
+opt = Option("test", Args["*foo":str])
+```
+
+现在你可以尝试输入如下命令:
+
+import { TerminalApp } from "@site/src/components/Teminal.js";
+import {mutli_arg} from "@site/src/components/commandlines.js";
+
+<TerminalApp lines={mutli_arg} height={180}/>
+

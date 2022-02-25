@@ -5,7 +5,7 @@ const alconna = [
     'delay': 80
   },
   {
-    'text': 'Alconna_CL\n可用的子命令有:\n# 开始创建 Alconna 命令\n  create\n## 该子命令内可用的选项有:\n # 指定命令名称\n  -C, --command <command_name>\n # 传入命令头\n  -H, --header <command_header>\n # 创建命令选项\n  -O, --option <option_name> <option_args, default=[]>\n # 展示创建命令的生成代码\n  -S, --show\n# 展示指定Alconna组件的帮助信息\n  help <target>',
+    'text': '* Alconna CL\n# 当前可用的命令有:\n - create 开始创建 Alconna 命令\n - analysis 分析命令并转换为 Alconna 命令结构\n - help 展示指定Alconna组件的帮助信息\n - using 依据创建的 Alconna 来解析输入的命令\n# 输入\'命令名 --help\' 查看特定命令的语法',
     'cmd': false
   },
   {
@@ -14,7 +14,7 @@ const alconna = [
   }
 ]
 
-const usage1 = [
+const strange = [
  {
     'text': 'w.analyse_message("查询北京天气").header',
     'cmd': true,
@@ -34,21 +34,29 @@ const usage1 = [
     'cmd': false
   },
   {
+    'text': 'd.analyse_message(".ra").header',
+    'cmd': true,
+    'delay': 80
+  },
+  {
+    'text': 'True',
+    'cmd': false
+  },
+  {
     'text': '',
     'cmd': true
   }
 ]
 
-const usage2 = [
+const much_args = [
   {
     'text': 'msg = \"Cal -sum 12 23\"',
     'cmd': true,
     'delay': 80
   },
   {
-    'text': 'cal.analyse_message(msg).get(\'sum\')',
-    'cmd': true,
-    'delay': 80
+    'text': 'cal.analyse_message(msg).main_args',
+    'cmd': true
   },
   {
     'text': '{\'num_a\': \'12\', \'num_b\': \'23\'}',
@@ -60,12 +68,11 @@ const usage2 = [
     'delay': 80
   },
   {
-    'text': 'cal.analyse_message(msg).get(\'div\')',
-    'cmd': true,
-    'delay': 80
+    'text': 'cal.analyse_message(msg).all_matched_args',
+    'cmd': true
   },
   {
-    'text': '{\'num_a\': \'12\', \'num_b\': \'23\', \'round\': {\'decimal\': \'2\'}}',
+    'text': '{\'num_a\': \'12\', \'num_b\': \'23\', \'decimal\': \'2\'}',
     'cmd': false
   },
   {
@@ -74,7 +81,7 @@ const usage2 = [
   }
 ]
 
-const usage3 = [
+const custom_sep = [
  {
     'text': 'alc.analyse_message(\"叔叔今天吃什么啊?\").header',
     'cmd': true,
@@ -99,19 +106,19 @@ const usage3 = [
   }
 ]
 
-const usage4 = [
+const mutli_arg = [
  {
-    'text': 'msg = MessageChain.create(At(12345), \" 丢漂流瓶 \", \"I L U\")',
+    'text': 'alc = Alconna.from_string("/test <*tag:str>")',
     'cmd': true,
     'delay': 80
   },
   {
-    'text': 'test.analyse_message(msg).main_args',
+    'text': 'alc.analyse_message("/test foo bar baz").main_args',
     'cmd': true,
     'delay': 80
   },
   {
-    'text': '{\'content\': \'I L U\'}',
+    'text': '[\'foo\', \'bar\', \'baz\']',
     'cmd': false
   },
   {
@@ -120,4 +127,32 @@ const usage4 = [
   }
 ]
 
-export {alconna, usage1, usage2, usage3, usage4};
+const shortcut = [
+ {
+    'text': 'github.analyse_message(\"!github repo ArcletProject/Alconna\").repo',
+    'cmd': true
+  },
+  {
+    'text': 'ArcletProject/Alconna',
+    'cmd': false
+  },
+  {
+    'text': 'github.shortcut("查看ALC", "!github repo ArcletProject/Alconna")',
+    'cmd': true,
+    'delay': 40
+  },
+  {
+    'text': 'github.analyse_message(\"查看ALC\").repo',
+    'cmd': true
+  },
+  {
+    'text': 'ArcletProject/Alconna',
+    'cmd': false
+  },
+  {
+    'text': '',
+    'cmd': true
+  }
+]
+
+export {alconna, strange, much_args, custom_sep, mutli_arg, shortcut};
