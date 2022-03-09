@@ -15,24 +15,31 @@ github = Alconna(
     options=[
         Subcommand(
             "repo",
-            Option(
-                "--issues",
-                Args["issue":str:"issues_id"]
-            ).help("获取仓库的issue, 可以指定issue id"),
-            Option(
-                "--pulls",
-                Args["pull":str:"pulls_id"]
-            ).help("获取仓库的pull, 可以指定pull id"),
-            Option(
-                "--branch",
-                Args["branch":str:"main"]
-            ).help("配合 codeview 使用, 指定分支")
-            Option(
-                "--codeview",
-                Args["path":str:"file_path"]
-            ).help("预览 path")
-            args=Args["repo":str:"repo_name"]
-        ).help("查看github仓库的信息")
+            options=[
+                Option(
+                    "--issues",
+                    Args["issue":str:"issues_id"],
+                    help_text="获取仓库的issue, 可以指定issue id"
+                ),
+                Option(
+                    "--pulls",
+                    Args["pull":str:"pulls_id"],
+                    help_text"获取仓库的pull, 可以指定pull id"
+                ),
+                Option(
+                    "--branch",
+                    Args["branch":str:"main"],
+                    help_text="配合 codeview 使用, 指定分支"
+                ),
+                Option(
+                    "--codeview",
+                    Args["path":str:"file_path"]
+                    help_text="预览 path"
+                ),
+            ]
+            args=Args["repo":str:"repo_name"],
+            help_text="查看github仓库的信息"
+        ),
     ],
 )
 ```

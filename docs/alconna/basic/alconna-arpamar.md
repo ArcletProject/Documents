@@ -11,10 +11,11 @@ title: 解析结果
 
 ## 方法
  
-|     方法名     |       方法名       |     返回值     |          描述           |
-|:-----------:|:---------------:|:-----------:|:---------------------:|
-| Arpamar.get | param-name: str | Dict or Any |   返回 Arpamar 中指定的属性   |
- | Arpamar.has | param-name: str |    Bool     | 判断 Arpamar 内是否有对应的属性  |
+|          方法名          |        参数        |     返回值     |          描述          |
+|:---------------------:|:----------------:|:-----------:|:--------------------:|
+|      Arpamar.get      | param-name: str  | Dict or Any |  返回 Arpamar 中指定的属性   |
+| Arpamar.get_first_arg | option-name: str |     Any     |   根据选项的名字返回第一个参数的值   |
+ |      Arpamar.has      | param-name: str  |    Bool     | 判断 Arpamar 内是否有对应的属性 |
 
  
 ## 属性
@@ -22,11 +23,12 @@ title: 解析结果
 |           属性名            |    属性类型     |                               描述                                |
 |:------------------------:|:-----------:|:---------------------------------------------------------------:|
 |     Arpamar.matched      |    bool     |                           返回命令是否匹配成功                            |
+|    Arpamar.error_info    |     str     |                       当匹配失败时, 该参数为可能的报错信息                       |
  |    Arpamar.error_data    |    List     |                       当匹配失败时，该参数为剩余未解析的参数                       |
  |    Arpamar.main_args     | Dict or Any |          当 `Alconna` 写入了 `main_args` 时, 该参数返回对应的解析出来的值          |
  |      Arpamar.header      | str or bool | 当 `Alconna` 的 `command` 内写有正则表达式时,该参数返回对应的匹配值; 若未写, 返回命令头是否匹配成功 |
  | Arpamar.all_matched_args |    Dict     |                  返回 `Alconna` 中所有 `Args` 解析到的值                  |
- |   Arpamar.option_args    |    Dict     |    返回 `Alconna` 中所有 `Option` 与 `Subcommand` 里的 `Args` 解析到的值     |
+ |    Arpamar.other_args    |    Dict     |    返回 `Alconna` 中所有 `Option` 与 `Subcommand` 里的 `Args` 解析到的值     |
 
 
 另外, 可直接通过`Arpamar.xxx` 来获取 `xxx`参数
@@ -44,4 +46,6 @@ title: 解析结果
 'ces'
 >>> result.bat
 False
+>>> result.name.pak
+'ces'
 ```

@@ -14,7 +14,7 @@ title: Click-like 方式
 click-like相较复杂一点，但支持独有的回调函数：
 
 ```python
-from arclet.alconna.decorate import AlconnaDecorate
+from arclet.alconna import AlconnaDecorate
 from arclet.alconna import Args
 
 cli = AlconnaDecorate()
@@ -36,7 +36,7 @@ from arclet.alconna import Alconna, Args, Option
 alc = Alconna(
     command="hello",
     options=[
-        Option("--foo", Args["bar":str], alias="-F").help("测试选项")
+        Option("--foo", Args["bar":str], alias="-F", help_text="测试选项")
     ]
 )
 def hello(bar: str):
@@ -45,7 +45,7 @@ def hello(bar: str):
 
 if __name__ == "__main__":
     message = ''.join(sys.argv[1:])
-    result = alc.analyse_message(message)
+    result = alc.parse(message)
     if result.matched:
         hello(**result.all_matched_args)
 

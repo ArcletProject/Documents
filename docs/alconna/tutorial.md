@@ -14,7 +14,7 @@ title: Alconna 导语
 ```python
 from arclet.alconna import *
 v = Alconna(headers=["!", ".bot"], command=f"获取{AnyStr}的涩图")
-print(v.analyse_message("!获取円香的涩图").header)
+print(v.parse("!获取円香的涩图").header)
 '円香'
 ```
 
@@ -29,6 +29,8 @@ pip install --upgrade arclet-alconna
 - `Alconna` 既能解析纯文本, 也能解析如 `MessageChain` 的复杂数据, 或 `List[str]`等原始数据
 
 - `Alconna` 可以通过单个对象去解析多种命令
+
+- `Alconna` 拥有强大的类型转换与繁多的类型预设, 可以自定义类型, 并且可以自定义类型的解析方式
 
 - `Alconna` 提供了简单的构造方法, 无需调整过多参数便可使用; 可以解析字符串与消息链
 

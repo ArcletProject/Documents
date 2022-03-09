@@ -14,9 +14,9 @@ title: Koishi-like 方式
 
 `Alconna` 的koishi-like形式的构造方法, 如
 ```python
-from arclet.alconna import Alconna
-Alconna.set_custom_types(digit=int)
-alc = Alconna.from_string(
+from arclet.alconna import AlconnaString
+digit=int
+alc = AlconnaString(
      "[tt|test_type] <wild> <text:str> <num:digit> <boolean:bool:False> #测试命令",
      "--foo|-f [True]"
 )
@@ -28,7 +28,7 @@ from arclet.alconna import Alconna, Option, store_bool, Args, AnyParam
 alc = Alconna(
     headers=["tt", "test_type"],
     options=[
-        Option("--foo", alias='-f', actions=store_bool(True))
+        Option("--foo", alias='-f', action=store_bool(True))
     ],
     main_args=Args["wild":AnyParam, "text":str, "num":int, "boolean":bool:False]
 )
@@ -41,7 +41,9 @@ alc = Alconna(
 
 :::tip
 
-`Alconna.set_custom_types` 可以用来设置全局的自定义类型,
+`Alconna.set_custom_types` 可以用来设置全局的自定义类型.
+
+在v0.7.1中, `AlconnaString`会直接读取本地的类型变量, 并且会自动添加到`custom_types`中.
 
 :::
 

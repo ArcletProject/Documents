@@ -15,6 +15,9 @@ import TabItem from '@theme/TabItem';
 :::
 
 一个`Alconna`实例的主要结构如下:
+
+(该结构仅为示例，实际结构会有所不同)
+
 ```
 Alconna
 ├── command_headers
@@ -54,8 +57,8 @@ Alconna
 - [typical](./constructs/typical.md)
 - [koishi-like](./constructs/koishi-like.md)
 - [formatter](./constructs/format.md)
-- [iterable](./constructs/simple.md)
 - [click-like](./constructs/click-like.md)
+- [fire-like](./constructs/fire-like.md)
 
 
 <Tabs groupId="classify">
@@ -63,6 +66,7 @@ Alconna
 可以传入全部参数的构造方式
 
 ```python
+from arclet.alconna import Alconna
 alc = Alconna(...)
 ```
 
@@ -71,7 +75,8 @@ alc = Alconna(...)
 无法传入子命令与报错选项
 
 ```python
-alc = Alconna.from_string(...)
+from arclet.alconna import AlconnaString
+alc = AlconnaString
 ```
 
 </TabItem>
@@ -79,15 +84,8 @@ alc = Alconna.from_string(...)
 无法写入帮助信息、命令头与选项别名
 
 ```python
-alc = Alconna.format(...)
-```
-
-</TabItem>
-<TabItem value="iterable" label="迭代参数方式">
-最简易的构造方式
-
-```python
-alc = Alconna.simple(...)
+from arclet.alconna import AlconnaFormat
+alc = AlconnaFormat(...)
 ```
 
 </TabItem>
@@ -95,10 +93,22 @@ alc = Alconna.simple(...)
 无法传入子命令与报错选项
 
 ```python
+from arclet.alconna import AlconnaDecorate
 alc = AlconnaDecorate(...)
 @alc.build_command()
 def test(...):
     pass
+```
+
+</TabItem>
+<TabItem value="fire" label="对象方式">
+复杂的构造方式, 强制使用报错选项
+
+```python
+from arclet.alconna import AlconnaFire
+def test(...):
+    pass
+alc = AlconnaFire(test)
 ```
 
 </TabItem>
@@ -129,37 +139,26 @@ General Options:
 根据上述的Alconna结构与前文的命令结构分析，我们可以得到这样的 `Alconna`:
 
 ```python title="/src/test_alconna.py"
-from arclet.alconna import Alconna, Option, Subcommand
+from arclet.alconna import Alconna, Option, Subcommand, Args
 import sys
 
 pip = Alconna(
-    command="/pip",
+    "/pip",
     options=[
-        Subcommand(
-            "install",
-            Option("--upgrade"),
-            pak=str,
-        ),
-        Subcommand(
-            "show",
-            pak=str,
-        ),
-        Subcommand(
-            "help",
-            command=str,
-        ),
+        Subcommand("install", [Option("--upgrade")], Args.pak[str]),
+        Subcommand("show", args=Args.pak[str]),
+        Subcommand("help", args=Args.command[str]),
         Option("list"),
-        Option("--help"),
-        Option("--retries", retries=int),
-        Option("--timeout", sec=int, alias='-t'),
-        Option("--exists-action", ex_action=str, alias='-ea'),
-        Option("--trusted-host", hostname="url", alias='-th')
+        Option("--retries", Args.retries[int]),
+        Option("-t| --timeout", Args.sec[int]),
+        Option("--exists-action", Args.action[str]),
+        Option("--trusted-host", Args.host_name["url"])
     ]
 )
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    print(pip.analyse_message(" ".join(args)))
+    print(pip.parse(" ".join(args)).all_matched_args)
 
 ```
 
@@ -172,3 +171,18 @@ python test_alconna.py "/pip install cesloi --upgrade --trusted-host http://pypi
 ```python
 {'upgrade': Ellipsis, 'pak': 'cesloi', 'hostname': 'http://pypi.douban.com/simple'}
 ```
+
+## 注意事项
+
+要想写好一个 `Alconna`，你首先需要理清楚自己的**命令结构**
+
+一般，你需要把命令分为四个部分:
+
+1. 命令名称：作为一个命令的标识符
+2. 命令分隔符：一般是空格, 作为参数之间的区分符号
+3. 命令参数：一个命令所需求的主要参数, 可以为空
+4. 命令选项：为命令添加额外的解释参数, 或以此选择命令的不同功能
+
+在上述例子中, `pip`是命令名称,  而剩下的`install`, `--retries`都是命令选项.
+
+若用一个类来比喻的话, 命令参数就是`__init__`方法的参数, 命令名称就是`Class.__name__`, 命令选项则是该类下的所有类方法.

@@ -25,7 +25,7 @@ module.exports = {
           type: 'category',
           label: "组件",
           items: [
-            'alconna-template-command',
+            'alconna-command-node',
             'alconna-args',
             'alconna-opt-and-sub',
             'alconna-arpamar',
@@ -38,17 +38,17 @@ module.exports = {
             'typical',
             'koishi-like',
             'format',
-            'simple',
+            'fire-like',
             'click-like',
           ].map(value => `alconna/constructs/${value}`)
         },
+        'alconna/analysis',
         {
           type: 'category',
           label: "细节",
           items: [
             'help-doc',
             'alconna-pattern',
-            'parse-order',
             'strange-command',
             'much-args',
             'custom-sep',
@@ -57,6 +57,7 @@ module.exports = {
         },
         'alconna/commandline',
         'alconna/manager',
+        'alconna/changelog',
       ]
     },
     {

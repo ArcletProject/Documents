@@ -17,20 +17,40 @@ title: 标准方式
 
 ```
 Alconna(
-    header,
     command,
+    header,
     options,
     main_args,
-    exception_in_time
-    actions
-    order_parse
-    namespace
-
+    is_raise_exception,
+    action,
+    namespace,
+    separator,
+    help_text,
 )
 ```
 
 
 标准方法需要四大类参数：
+
+### command
+
+命令名称，你的命令的名字, 会作为该命令的主要标识符, 可以包含数字、字母、下划线、短横线甚至中文字符，
+但不应该包含空格或者你选定的`separator`, 例如: 'command', '你好', 'ping'
+
+与 `headers` 至少有一个填写
+
+```python {3}
+from arclet.alconna import Alconna, Option, Subcommand, Args
+alc = Alconna(
+    command='hello',
+    headers=['/', '!'],
+    options=[
+       Option("--name|-n", Args["name": str]),
+       Subcommand("world") 
+    ],
+    main_args=Args["reply": str],
+)
+```
 
 ### headers
 
@@ -38,11 +58,11 @@ Alconna(
 
 与 `command` 至少有一个填写. 
 
-```python {3}
+```python {4}
 from arclet.alconna import Alconna, Option, Subcommand, Args
 alc = Alconna(
-    headers=['/', '!'],
     command='hello',
+    headers=['/', '!'],
     options=[
        Option("--name|-n", Args["name": str]),
        Subcommand("world") 
@@ -57,33 +77,14 @@ alc = Alconna(
 
 ```python
 test = Alconna(
-    headers=[At(12345)],
     command="丢漂流瓶",
+    headers=[At(12345)],
     main_args=Args["content":AnyParam]
 )
 ```
 
 :::
 
-### command
-
-命令名称，你的命令的名字, 会作为该命令的主要标识符, 可以包含数字、字母、下划线、短横线甚至中文字符，
-但不应该包含空格或者你选定的`separator`, 例如: 'command', '你好', 'ping'
-
-与 `headers` 至少有一个填写
-
-```python {4}
-from arclet.alconna import Alconna, Option, Subcommand, Args
-alc = Alconna(
-    headers=['/', '!'],
-    command='hello',
-    options=[
-       Option("--name|-n", Args["name": str]),
-       Subcommand("world") 
-    ],
-    main_args=Args["reply": str],
-)
-```
 
 ### options
 
@@ -92,8 +93,8 @@ alc = Alconna(
 ```python {5-8}
 from arclet.alconna import Alconna, Option, Subcommand, Args
 alc = Alconna(
-    headers=['/', '!'],
     command='hello',
+    headers=['/', '!'],
     options=[
        Option("--name|-n", Args["name": str]),
        Subcommand("world") 
@@ -110,28 +111,40 @@ alc = Alconna(
 
 ### main_args
 
-命令主参数, 应当为一个[`Args`](../basic/alconna-args)类型的实例. 
+命令主参数, 应当为一个[`Args`](../basic/alconna-args.mdx)类型的实例. 
 
 若填入，则仅当命令中含有该参数时才会成功解析
 
 ```python {9}
 from arclet.alconna import Alconna, Option, Subcommand, Args
 alc = Alconna(
-    headers=['/', '!'],
     command='hello',
+    headers=['/', '!'],
     options=[
        Option("--name|-n", Args["name": str]),
        Subcommand("world") 
     ],
     main_args=Args["reply": str],
-)
+
 ```
 
+:::tip
+
+`Alconna`同样继承于`CommandNode`, 所以你可以传入字符串来构造main_args, 例如:
+
+```python
+from arclet.alconna import Alconna, store_bool
+alc = Alconna("test_bool", main_args="foo:str", action=store_bool(True))
+```
+
+:::
+
 另外，你可以：
-- 通过 `exception_in_time` 参数来控制是否在解析失败时抛出异常.其默认值为 `False`
-- 通过 `actions` 参数来指定命令解析后的回调函数.
-- 通过 `order_parse` 参数来控制是否按照命令顺序解析.其默认值为 `False`.
+- 通过 `is_raise_exception` 参数来控制是否在解析失败时抛出异常.其默认值为 `False`
+- 通过 `action` 参数来指定命令解析后的回调函数.
 - 通过 `namespace` 参数来指定命令命名空间.其默认为`Alconna`.
+- 通过 `separator` 参数来指定命令分隔符
+- 通过 `help_text` 参数来写入帮助信息
 
 
 

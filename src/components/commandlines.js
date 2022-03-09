@@ -106,19 +106,118 @@ const custom_sep = [
   }
 ]
 
-const mutli_arg = [
+const multi_arg = [
  {
-    'text': 'alc = Alconna.from_string("/test <*tag:str>")',
+    'text': 'from arclet.alconna.analysis import analyse_option',
     'cmd': true,
     'delay': 80
   },
   {
-    'text': 'alc.analyse_message("/test foo bar baz").main_args',
+    'text': 'analyse_option(opt, "test foo bar baz")',
+    'cmd': true,
+    'delay': 40
+  },
+  {
+    'text': '[\'test\', {\'foo\': [\'foo\', \'bar\', \'baz\']}]',
+    'cmd': false
+  },
+  {
+    'text': 'analyse_option(opt1, "test a=1 b=2 c=3")',
+    'cmd': true,
+    'delay': 40
+  },
+  {
+    'text': '[\'test\', {\'foo\': {\'a\': \'1\', \'b\': \'2\', \'c\': \'3\'}}]',
+    'cmd': false
+  },
+  {
+    'text': '',
+    'cmd': true
+  }
+]
+
+const anti_arg = [
+ {
+    'text': 'from arclet.alconna.analysis import analyse_option',
     'cmd': true,
     'delay': 80
   },
   {
-    'text': '[\'foo\', \'bar\', \'baz\']',
+    'text': 'analyse_option(opt, "test abc")',
+    'cmd': true,
+    'delay': 40
+  },
+  {
+    'text': '[\'test\', {\'foo\': \'abc\'}]',
+    'cmd': false
+  },
+  {
+    'text': 'analyse_option(opt1, "test a")',
+    'cmd': true,
+    'delay': 40
+  },
+  {
+    'text': 'Traceback (most recent call last):\narclet.alconna.exceptions.ParamsUnmatched: param a is incorrect',
+    'cmd': false
+  },
+  {
+    'text': '',
+    'cmd': true
+  }
+]
+
+const kwonly_arg = [
+ {
+    'text': 'from arclet.alconna.analysis import analyse_option',
+    'cmd': true,
+    'delay': 80
+  },
+  {
+    'text': 'analyse_option(opt, "test foo=123")',
+    'cmd': true,
+    'delay': 40
+  },
+  {
+    'text': '[\'test\', {\'foo\': 123}]',
+    'cmd': false
+  },
+  {
+    'text': 'analyse_option(opt1, "test 123")',
+    'cmd': true,
+    'delay': 40
+  },
+  {
+    'text': 'Traceback (most recent call last):\narclet.alconna.exceptions.ParamsUnmatched: 123 missing its key. \nDo you forget to add \'foo=\'?',
+    'cmd': false
+  },
+  {
+    'text': '',
+    'cmd': true
+  }
+]
+
+const optional_arg = [
+ {
+    'text': 'from arclet.alconna.analysis import analyse_option',
+    'cmd': true,
+    'delay': 80
+  },
+  {
+    'text': 'analyse_option(opt, "test abc")',
+    'cmd': true,
+    'delay': 40
+  },
+  {
+    'text': 'Traceback (most recent call last):\narclet.alconna.exceptions.ParamsUnmatched: param abc is incorrect',
+    'cmd': false
+  },
+  {
+    'text': 'analyse_option(opt1, "test abc")',
+    'cmd': true,
+    'delay': 40
+  },
+  {
+    'text': '[\'test\', {}]',
     'cmd': false
   },
   {
@@ -155,4 +254,29 @@ const shortcut = [
   }
 ]
 
-export {alconna, strange, much_args, custom_sep, mutli_arg, shortcut};
+const hidden = [
+ {
+    'text': 'alc.get_help()',
+    'cmd': true,
+    'delay': 40
+  },
+  {
+    'text': 'test <foo:str>\nUnknown Information\n',
+    'cmd': false
+  },
+  {
+    'text': 'alc1.get_help()',
+    'cmd': true,
+    'delay': 40
+  },
+  {
+    'text': 'test1 <foo>\nUnknown Information\n',
+    'cmd': false
+  },
+  {
+    'text': '',
+    'cmd': true
+  }
+]
+
+export {alconna, strange, much_args, custom_sep, multi_arg, shortcut, anti_arg, hidden, optional_arg, kwonly_arg};

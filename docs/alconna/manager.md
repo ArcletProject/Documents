@@ -36,12 +36,12 @@ Manager
 该方法可以传入一`namespace`参数，表示只返回该命名空间下的命令的帮助信息。
 
 ```python
-from arclet.alconna import Alconna
+from arclet.alconna import AlconnaString
 from arclet.alconna.manager import CommandManager
 manager = CommandManager()
-alc = Alconna.from_string("command1 #命令1")
-alc1 = Alconna.from_string("command2 #命令2")
-alc2 = Alconna.from_string("command3 #命令3")
+alc = AlconnaString("command1 #命令1")
+alc1 = AlconnaString("command2 #命令2")
+alc2 = AlconnaString("command3 #命令3")
 ...
 print(manager.all_command_help())
 ```
@@ -55,6 +55,14 @@ print(manager.all_command_help())
 # 输入'命令名 --help' 查看特定命令的语法
 ```
 
+该方法另有:
+- header: 该帮助信息的页眉
+- pages: 该帮助信息的页面信息格式
+- footer: 该帮助信息的页脚
+- max_length: 该帮助信息一页内展示的命令的最大数量
+- page: 有多个页面时选择展示的页面索引
+
+
 ## broadcast
 命令管理器的`broadcast`方法可以将命令发送给当前主程序下(包括导入的模块中的)注册的所有命令。
 
@@ -66,18 +74,18 @@ print(manager.all_command_help())
 方法需要传入一个`command`参数，表示要控制的命令。该参数可以是命令的名称，也可以是命令的实例。
 
 ```python
-from arclet.alconna import Alconna
+from arclet.alconna import AlconnaString
 from arclet.alconna.manager import CommandManager
 manager = CommandManager()
-alc = Alconna.from_string("command1 #命令1")
-alc1 = Alconna.from_string("command2 #命令2")
-alc2 = Alconna.from_string("command3 #命令3")
+alc = AlconnaString("command1 #命令1")
+alc1 = AlconnaString("command2 #命令2")
+alc2 = AlconnaString("command3 #命令3")
 manager.set_disable(alc2)
 print("禁用命令3")
-print(alc2.analyse_message("command3").matched)
+print(alc2.parse("command3").matched)
 print("启用命令3")
 manager.set_enable("Alconna.command3")
-print(alc2.analyse_message("command3").matched)
+print(alc2.parse("command3").matched)
 ```
 
 其会输出:
