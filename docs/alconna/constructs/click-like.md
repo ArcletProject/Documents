@@ -127,7 +127,7 @@ PS C:\Users\Administrator> python my_alconna.py -m hello --foo ALCONNA
 
 ## 帮助信息
 
-如[help-doc](../detail/help-doc.md)中所说, Alconna内置了`--help` 选项, 所以在此我们只考虑如何写入
+如[help-doc](../util/help-doc.md)中所说, Alconna内置了`--help` 选项, 所以在此我们只考虑如何写入
 
 对于`option`, 信息应在`@option(..., help=xxx)`中写入
 
