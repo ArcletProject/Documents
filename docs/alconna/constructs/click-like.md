@@ -112,9 +112,10 @@ cli = AlconnaDecorate().set_default_parser(my_parser)
 
 `ALCCommand`是承载着`Alconna`与回调函数的命令执行体, 其可以通过两种方法来解析命令：
 
-1.`ALCCommand(xxx)`: 与`Alconna.analyse_message()`作用一致
+1. `ALCCommand(xxx)`: 与`Alconna.analyse_message()`作用一致
 
-2.`ALCCommand.from_commandline()`: 会尝试从`sys.argv`中获取命令, 并且该方法会自动填入指令名称,
+2. `ALCCommand.from_commandline()`: 会尝试从`sys.argv`中获取命令, 并且该方法会自动填入指令名称,
+
 即输入
 ```powershell
 PS C:\Users\Administrator> python my_alconna.py -m --foo ALCONNA

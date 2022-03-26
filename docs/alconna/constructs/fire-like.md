@@ -94,6 +94,28 @@ if __name__ == "__main__":
 - `raise_exception`: 当命令执行时, 是否抛出异常
 - `namespace`: 命令的命名空间
 
+:::tip
+
+如果传入的对象为函数或者方法, `AlconnaFire`一样会尝试读取其内部的`Config`类作为命令的帮助信息
+
+(~~虽然你的类型检查器可能不会高兴~~)
+
+```python {6-9}
+from arclet.alconna import AlconnaFire
+
+def test(user:str):
+    print(f"Hello {user}!")
+    
+    class FuncConfig:
+        command = "test"
+        description = "test description"
+        extra = "raise"
+
+alc = AlconnaFire(test)
+```
+
+:::
+
 ## 配合ArgPattern 与 ObjectPattern
 
 大部分时候你是无法通过命令行来传入额外类型的变量, 这时候我们可以用`ArgPattern`和`ObjectPattern`来解决这个问题。

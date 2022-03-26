@@ -279,4 +279,59 @@ const hidden = [
   }
 ]
 
-export {alconna, strange, much_args, custom_sep, multi_arg, shortcut, anti_arg, hidden, optional_arg, kwonly_arg};
+
+const cool_down = [
+ {
+    'text': 'python test_cooldown.py',
+    'cmd': true,
+    'delay': 40
+  },
+  {
+    'text': 'matched=False, head_matched=True, error_data=[], error_info=操作过于频繁',
+    'cmd': false
+  },
+  {
+    'text': 'matched=True, head_matched=True, main_args={\'bar\': 1}',
+    'cmd': false
+  },
+  {
+    'text': 'matched=False, head_matched=True, error_data=[], error_info=操作过于频繁',
+    'cmd': false
+  },
+  {
+    'text': 'matched=True, head_matched=True, main_args={\'bar\': 3}',
+    'cmd': false
+  }
+]
+
+
+const oplike = [
+ {
+    'text': 'alc.parse("cut_img --height=640")',
+    'cmd': true,
+    'delay': 40
+  },
+  {
+    'text': 'matched=True, head_matched=True, main_args={"--width": 1280, "--height":640}',
+    'cmd': false
+  },
+  {
+    'text': '',
+    'cmd': true
+  }
+]
+
+export {
+    alconna,
+    strange,
+    much_args,
+    custom_sep,
+    multi_arg,
+    shortcut,
+    anti_arg,
+    hidden,
+    optional_arg,
+    kwonly_arg,
+    cool_down,
+    oplike
+};

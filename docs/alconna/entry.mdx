@@ -20,8 +20,9 @@ import TabItem from '@theme/TabItem';
 
 ```
 Alconna
-├── command_headers
 ├── command_name
+├── command_args
+├── command_headers
 ├── options
 │   │── Subcommand
 │   │   │── sub_name
@@ -35,13 +36,14 @@ Alconna
 │   │   │── opt_name
 │   │   └── opt_arg
 │   └── ...
-└── main_args
+└── ...
 
 ```
 
 其中
-- command_headers: 命令头
 - command_name: 命令名称
+- command_args: 命令参数
+- command_headers: 命令头
 - sub_name: 子命令名称
 - sub_opt_name: 子命令选项名称
 - sub_opt_arg: 子命令选项参数

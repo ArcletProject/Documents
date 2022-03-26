@@ -184,3 +184,18 @@ opt1 = Option("test", Args["foo":Union[int, bool]])
 ```
 
 当`foo`的值不在`["bar", "baz"]`中时, `Alconna`会报错
+
+:::tip
+
+如果想达到解析float类型的参数或某个指定的值(如[float, "qux"]), 你可以直接导入`UnionArg`, 然后
+
+```python
+from arclet.alconna import Option, Args
+from arclet.alconna.types import UnionArg
+
+opt = Option("test", Args["foo":UnionArg[float, "qux"]])
+```
+
+这样'foo'就只能为float或者'qux'
+
+:::

@@ -58,9 +58,26 @@ print(alc.parse("music --help"))
 ```python
 from arclet.alconna import Alconna, Option, Args, AnyParam
 alc = Alconna(
-    command="music",
-    options=[Option("singer", Args["name":AnyParam])],
-    main_args=Args["artist":AnyParam, "title":AnyParam]
+    "music",
+    Args["artist":AnyParam, "title":AnyParam],
+    options=[Option("singer", Args["name":AnyParam])]
+)
+```
+
+在v0.7.6后, `{}`内也可以像`koishi-like`一样直接用字符串传入类型与默认值, 如:
+```python
+from arclet.alconna import AlconnaFormat
+alc = AlconnaFormat("music {artist:str} {title:str} singer {name:str:mili}")
+print(alc.parse("music --help"))
+```
+
+其等价于:
+```python
+from arclet.alconna import Alconna, Option, Args, AnyParam
+alc = Alconna(
+    "music",
+    Args["artist":str, "title":str],
+    options=[Option("singer", Args["name":str])],
 )
 ```
 

@@ -12,8 +12,8 @@ title: Alconna 导语
 `Alconna` 由繁多的预设组件来架构其解析功能, 以用于更加精确的命令解析.
 
 ```python
-from arclet.alconna import *
-v = Alconna(headers=["!", ".bot"], command=f"获取{AnyStr}的涩图")
+from arclet.alconna import Alconna, AnyStr
+v = Alconna(f"获取{AnyStr}的涩图", headers=["!", ".bot"])
 print(v.parse("!获取円香的涩图").header)
 '円香'
 ```
@@ -35,6 +35,8 @@ pip install --upgrade arclet-alconna
 - `Alconna` 提供了简单的构造方法, 无需调整过多参数便可使用; 可以解析字符串与消息链
 
 - `Alconna` 会将解析的结果包装成 `Arpamar`, 你可以通过 `Arpamar` 获取传入的消息内容
+
+- `Alconna` 可以自定义解析器, 可以自定义解析器的解析方式, 可以自定义解析器的解析结果
 
 ## 性能参考
 在 i5-10210U 处理器上, `Alconna` 的性能大约为 `36000~71000 msg/s`, 取决于 `Alconna` 的复杂程度

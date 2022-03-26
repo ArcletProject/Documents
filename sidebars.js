@@ -42,21 +42,31 @@ module.exports = {
             'click-like',
           ].map(value => `alconna/constructs/${value}`)
         },
+        {
+          type: 'category',
+          label: "周边",
+          items: [
+            'visitor',
+            'help-doc',
+            'alconna-pattern',
+            'duplication',
+          ].map(value => `alconna/util/${value}`)
+        },
         'alconna/analysis',
         {
           type: 'category',
           label: "细节",
           items: [
-            'help-doc',
-            'alconna-pattern',
             'strange-command',
             'much-args',
             'custom-sep',
-            'shortcut'
+            'shortcut',
+            'oplike-args'
           ].map(value => `alconna/detail/${value}`)
         },
         'alconna/commandline',
         'alconna/manager',
+        'alconna/extra',
         'alconna/changelog',
       ]
     },

@@ -69,12 +69,38 @@ title: 更新日志
 11. 修复bug
 
 
-## Alconna 0.7.4 - 0.7.4.2:
+### Alconna 0.7.4 - 0.7.4.3:
 1. 加入`Alconna.local_args`, 可用来注入额外参数
 2. `actions`关键字改为`action`
 3. 加入`_`前缀，用来隐藏该参数的类型注解
 4. 修复bug
 
+
+### Alconna 0.7.5
+1. 内部类型改进, `MessageChain` -> `DataCollection`
+2. 加入`ArpamarBehavior`, 用以解析后的预处理, 并提供三个预制的`behavior`:
+- `set_default`: 当某个选项未被输入时, 使用该行为添加一个默认值
+- `exclusion`: 当指定的两个选项同时出现时报错
+- `cool_down`: 限制命令调用频率
+3. 加入`NodeVisitor`与`HelpFormatter`, 并将原先给CommandNode的help生成转移给Formatter
+4. 加入`AlconnaMessageProxy`, 用作对外适配接口
+
+
+### Alconna 0.7.6 - 0.7.6.1
+1. 增加对`Graia`系的原生支持, 位于`arclet.alconna.graia`
+2. header现在可支持非文字类元素与文字混用的解析, 原来的方式请改用`元组(非文本元素, 文本)`
+3. 增加`Alconna` 对 `/`与`@` 运算符的支持, 作用为重置命名空间
+4. 增加`Alconna` 对 `+` 运算符的支持, 作用为增加选项
+5. `Args` 可直接传入 `str`, 即`Args["foo":"foo"]` -> `Args["foo"]`
+6. `Format`中的format slot可以直接写入类型, 如`"{name: str}"`
+7. 修复Bug
+
+
+### Alconna 0.7.7 - 0.7.7.3
+1. 加入`Argparser`风格的HelpFormatter
+2. 加入`AlconnaDuplication`, 旨在提供更好的解析结果使用
+3. option的name与alias现在会根据长度自动倒换
+4. 修复Bug
 
 ## Alconna 0.6.x:
 

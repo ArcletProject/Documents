@@ -1,0 +1,136 @@
+---
+id: alconna-arpamar
+title: 解析结果
+---
+
+## Arpamar
+
+`Alconna` 会将解析的结果包装为一个`Arpamar`返回，你可以通过`Arpamar`获取解析成功的值
+
+通过如下方式来使用`Arpamar`:
+
+## 方法
+ 
+|          方法名          |        参数        |     返回值     |          描述          |
+|:---------------------:|:----------------:|:-----------:|:--------------------:|
+|      Arpamar.get      | param-name: str  | Dict or Any |  返回 Arpamar 中指定的属性   |
+| Arpamar.get_first_arg | option-name: str |     Any     |   根据选项的名字返回第一个参数的值   |
+ |      Arpamar.has      | param-name: str  |    Bool     | 判断 Arpamar 内是否有对应的属性 |
+
+ 
+## 属性
+
+|           属性名            |    属性类型     |                               描述                                |
+|:------------------------:|:-----------:|:---------------------------------------------------------------:|
+|     Arpamar.matched      |    bool     |                           返回命令是否匹配成功                            |
+|    Arpamar.error_info    |     str     |                       当匹配失败时, 该参数为可能的报错信息                       |
+ |    Arpamar.error_data    |    List     |                       当匹配失败时，该参数为剩余未解析的参数                       |
+ |    Arpamar.main_args     | Dict or Any |          当 `Alconna` 写入了 `main_args` 时, 该参数返回对应的解析出来的值          |
+ |      Arpamar.header      | str or bool | 当 `Alconna` 的 `command` 内写有正则表达式时,该参数返回对应的匹配值; 若未写, 返回命令头是否匹配成功 |
+ | Arpamar.all_matched_args |    Dict     |                  返回 `Alconna` 中所有 `Args` 解析到的值                  |
+ |    Arpamar.other_args    |    Dict     |    返回 `Alconna` 中所有 `Option` 与 `Subcommand` 里的 `Args` 解析到的值     |
+
+
+另外, 可直接通过`Arpamar.xxx` 来获取 `xxx`参数
+```python
+>>> alc = Alconna(
+...     command="test",
+...     options=[
+...         Option("name", Args["pak":str]),
+...         Option("foo", Args["bar":bool:True])
+...     ]
+... )
+>>> msg = MessageChain.create("test name ces foo False")
+>>> result = alc.analyse_message(msg)
+>>> result.pak
+'ces'
+>>> result.bat
+False
+>>> result.name.pak
+'ces'
+```
+
+## Behavior
+
+在 v0.7.5 中, `Alconna` 加入了 `ArpamarBehavior`类
+
+你可以通过 `ArpamarBehavior` 来对 `Arpamar` 进行一些额外的操作
+
+:::note
+为了后续叙述的方便, 我们先约定好一些术语的中文翻译.
+
+ * require: vt & vi. 获取(参数)
+ * behavior: 行为器
+ * ArpamarBehaviorInterface: 行为器接口, 缩写为 ABI.
+:::
+
+### 创建行为器
+
+你的自定义行为器应该继承自 `ArpamarBehaivor`, 并且实现一抽象方法 `ArpamarBehavior.operate`
+
+该方法应写入唯一参数 `ArpamarBehaviorInterface`:
+
+```python
+from arclet.alconna.arpamar.behavior import ArpamarBehavior
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from arclet.alconna.arpamar.behavior import ArpamarBehaviorInterface
+
+class MyBehavior(ArpamarBehavior):
+    def operate(self, interface: "ArpamarBehaviorInterface"):
+        ...
+```
+
+### 通过ABI获取参数
+
+`ArpamarBehaviorInterface`, 即 "行为器接口", 在`Alconna`中负责从传入的
+`Behavior`集合中将自身作为参数调用`operate`方法, 并将自身的参数与类方法暴露给行为器
+
+ABI有如下方法:
+
+| 名称           | 参数                                                                               | 用途               |
+|--------------|----------------------------------------------------------------------------------|------------------|
+| change_const | key: "matched", "head_matched", "error_data", "error_info", "header", value: Any | 改变指定参数的值         |
+| target       | -                                                                                | 获取Arpamar实例      |
+| require      |     path: str                                                                             | 依据path返回一个Dict参数 |
+
+
+通过`require`, 行为器可以判断命令中的选项或者子命令是否被解析到, 或者是否包含某个参数
+
+```python
+class MyBehavior(ArpamarBehavior):
+    def operate(self, interface: "ArpamarBehaviorInterface"):
+        if not interface.require("option.foo"):
+            raise ValueError
+```
+
+### 内置行为器
+
+`Alconna` 提供了三种行为器, 作用分别为:
+- `set_default`: 当某个选项未被输入时, 使用该行为添加一个默认值
+- `exclusion`: 当指定的两个选项同时出现时报错
+- `cool_down`: 限制命令调用频率
+
+用 `cool_down` 作为示例:
+
+```python title="test_cooldown.py"
+...
+from arclet.alconna import cool_down
+...
+
+alc2 = Alconna(
+    "test_cool_down",
+    main_args=Args["bar":int],
+    behaviors=[cool_down(0.3)]
+)
+for i in range(4):
+    time.sleep(0.2)
+    print(alc2.parse("test_cool_down {}".format(i)))
+```
+
+import { TerminalApp } from "@site/src/components/Teminal.js";
+import {cool_down} from "@site/src/components/commandlines.js";
+
+<TerminalApp lines={cool_down} height={200} interval={80}/>
+

@@ -3,7 +3,7 @@ id: help-doc
 title: 内置帮助文档
 ---
 
-## Help String
+## Help Text
 `Alconna` 支持通过传入`help_text`参数, 来写入帮助说明,
 
 以前面的指令为例：
@@ -13,7 +13,8 @@ pip = Alconna(
     command="/pip",
     options=[
         Subcommand(
-            "install", Option("--upgrade", help_text="升级包"), 
+            "install", 
+            [Option("--upgrade", help_text="升级包")], 
             args=Args["pak":str],
             help_text="安装一个包"
         ),
@@ -89,3 +90,50 @@ test <foo:str> <bar:str>
 Help选项一旦被解析，则会自动判别为解析失败, 以防止后续的参数解析错误
 
 :::
+
+## 格式化输出
+
+`HelpTextFormatter` 提供了一个格式化输出的功能，你可以在`Alconna`中传入自己构建的格式器。
+
+一个`HelpTextFormatter` 包括如下抽象方法:
+- `format(trace: Node) -> str`: help text的生成入口
+- `param(parameter: Node) -> str`: 对单个参数的描述
+- `parameters(params: List[Node]) -> str`: 对参数列表的描述
+- `header(header: Node) -> str`: 对头部节点的描述
+- `body(body: Node) -> str`: 子节点列表的描述
+- `part(sub: Node, node_type: str) -> str`: 每个子节点的描述
+
+通过这些方法返回的字符串的组合以输出格式化的帮助信息
+
+:::note 内置格式
+
+`Alconna` 现内置了两种风格的格式器, 另一个为`Argparser-like`:
+
+```python
+...
+from arclet.alconna import ArgParserHelpTextFormatter
+from arclet.alconna.visitor import AlconnaNodeVisitor
+...
+
+visitor = AlconnaNodeVisitor(pip)
+print(visitor.format_node(ArgParserHelpTextFormatter()))
+```
+则控制台会输出
+```
+/pip [install] [show] [help] [list] [--retries] [--timeout] [--exists-action] [--trusted-host] [--help]
+
+描述: pip指令
+命令: /pip 
+
+子命令:
+  install PAK:str [--upgrade] 安装一个包
+  show PAK:str                显示一个包的信息
+  help COMMAND:str            显示一个指令的帮助
+选项:
+  list                       列出所有安装的包
+  --retries RETRIES:int      设置尝试次数
+  --timeout, -t SEC:int      设置超时时间
+  --exists-action ACTION:str 添加行为
+  --trusted-host HOST:url    选择可信赖地址
+  --help, -h                 显示帮助信息
+```

@@ -24,11 +24,11 @@ alc = AlconnaString(
 
 它与如下是等效的:
 ```python
-from arclet.alconna import Alconna, Option, store_bool, Args, AnyParam
+from arclet.alconna import Alconna, Option, store_value, Args, AnyParam
 alc = Alconna(
     headers=["tt", "test_type"],
     options=[
-        Option("--foo", alias='-f', action=store_bool(True))
+        Option("--foo", alias='-f', action=store_value(True))
     ],
     main_args=Args["wild":AnyParam, "text":str, "num":int, "boolean":bool:False]
 )
