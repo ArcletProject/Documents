@@ -70,7 +70,7 @@ dup = alc.parse("my_command abc 123 --baz def", duplication=MyCommand)
 
 ### ArgsStub
 
-`ArgsStub` 争对`Args`类, 通过它来操作`Args`的解析数据.
+`ArgsStub` 针对`Args`类, 通过它来操作`Args`的解析数据.
 
 :::note
 
@@ -86,9 +86,9 @@ dup = alc.parse("my_command abc 123 --baz def", duplication=MyCommand)
 
 ### OptionStub
 
-`OptionStub` 争对`Option`类, 通过它来操作`Option`的解析数据.
+`OptionStub` 针对`Option`类, 通过它来操作`Option`的解析数据.
 
 ### SubcommandStub
 
-`SubcommandStub` 争对`Subcommand`类, 通过它来操作`Subcommand`的解析数据.
+`SubcommandStub` 针对`Subcommand`类, 通过它来操作`Subcommand`的解析数据.
 
