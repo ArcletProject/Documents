@@ -1,0 +1,48 @@
+---
+id: fuzzy-match
+title: 模糊匹配
+---
+
+在 0.8.0 版本中, 我们为 `Alconna` 增加了模糊匹配功能
+
+其实现是用了 [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) 算法
+
+```jsx live
+function levenshtein(props) {
+    const source = "github";
+    const target = "gayhub";
+    const m = source.length;
+    const n = target.length;
+    const dp = Array(m + 1).fill(0).map(() => Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) {
+        for (let j = 0; j <= n; j++) {
+            if (i === 0) {dp[i][j] = j;}
+            else if (j === 0) {dp[i][j] = i;}
+            else {
+                let del_dist = dp[i - 1][j] + 1;
+                let ins_dist = dp[i][j - 1] + 1;
+                let sub_dist = dp[i - 1][j - 1] + (source[i - 1] === target[j - 1] ? 0 : 1);
+                dp[i][j] = Math.min(del_dist, ins_dist, sub_dist);
+            }
+        }
+    }
+    let res = 1 - dp[m][n] / Math.max(m, n);
+    return ( <h2>Levenshtein result: {res}.</h2> )
+}
+```
+
+## 使用方法
+
+构建 `Alconna` 实例时, 通过 `is_fuzzy_match=True` 属性来开启模糊匹配功能
+
+```python
+from arclet.alconna import Alconna, Args
+
+alc = Alconna("test_fuzzy", Args["foo":int], is_fuzzy_match=True)
+```
+
+import { TerminalApp } from "@site/src/components/Teminal.js";
+import {fuzzy_match} from "@site/src/components/commandlines.js";
+
+
+<TerminalApp lines={fuzzy_match} height={200}/>

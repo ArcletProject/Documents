@@ -3,6 +3,8 @@ id: commandline
 title: 命令行功能
 ---
 
+import { TerminalApp } from "@site/src/components/Teminal.js";
+
 得益于`Alconna`的完善性, 在 v0.6 版本中, 我们加入了命令行功能.
 
 ## Commandline
@@ -10,32 +12,23 @@ title: 命令行功能
 在通过`pip`安装/更新 `arclet-alconna` 后, 你可以尝试在本地终端输入
 
 ```powershell
-PS C:\Users\Administrator> alconna
+PS C:\Users\Alconna> alconna
 ```
-
-import { TerminalApp } from "@site/src/components/Teminal.js";
 
 import {alconna} from "@site/src/components/commandlines.js";
 
-<TerminalApp lines={alconna} height={480}/>
+
+<TerminalApp  prompt={"C:\\Users\\Alconna> "} lines={alconna} height={360}/>
 
 ## create指令
 
 该指令用来辅助入门者快速创建一个 `Alconna` 命令.
 
-```
-create
-开始创建 Alconna 命令
-可用的选项有:
-# 指定命令名称
-  -C, --command <command_name>
-# 传入命令头
-  -H, --header <command_header>
-# 创建命令选项
-  -O, --option <option_name> <option_args, default=[]>
-# 从已经分析的命令结构中创建Alconna
-  -A, --analysed
-```
+import {alconna_create} from "@site/src/components/commandlines.js";
+
+
+<TerminalApp  prompt={"C:\\Users\\Alconna> "} lines={alconna_create} height={420}/>
+
 
 ## analysis指令
 

@@ -61,7 +61,7 @@ b:
 
 :::
 
-显然的是，第一种结构的层数更少，第二种结构的拓展性更好
+显而易见的是，第一种的结构的层数更少，第二种的结构的拓展性更好
 
 而 `CommandAnalysis` 正是根据第二种结构实现的命令解析
 
@@ -86,14 +86,15 @@ b:
 只需要这么写:
 
 ```python
-Command(headers=["/"], main=["ping", AnyIP])
+Command(headers=["/"], main=["ping", AnyIP, " "])
 ```
+
+:::note 参数说明
+
 AnyIP 其实是预制的正则表达式。是的，在`CommandAnalysis` 中, 你可以在任意地方写入自己的正则表达式。
 
-:::tip
+:::
 
 读完这些，你应该对 **命令(Command)** 的结构有一个大致的了解, 这也是为后面你学习的 `Alconna` 做功课
-
-:::
 
 接下来, 便是对于 `Alconna` 的详细介绍了

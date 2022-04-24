@@ -5,7 +5,7 @@ title: Koishi-like 方式
 
 ## 实例化
 
-:::note
+:::info
 
 该方法来源于 [Koishi 指令系统](https://koishi.js.org/guide/command/command.html)
 中命令的创建方式。
@@ -17,8 +17,8 @@ title: Koishi-like 方式
 from arclet.alconna import AlconnaString
 digit=int
 alc = AlconnaString(
-     "[tt|test_type] <wild> <text:str> <num:digit> <boolean:bool:False> #测试命令",
-     "--foo|-f [True]"
+     "[tt|test_type] <text:str> <..wild> <num:digit> <boolean:bool:False> #测试命令",
+     "--foo|-f [bar] &True"
 )
 ```
 
@@ -28,9 +28,9 @@ from arclet.alconna import Alconna, Option, store_value, Args, AnyParam
 alc = Alconna(
     headers=["tt", "test_type"],
     options=[
-        Option("--foo", alias='-f', action=store_value(True))
+        Option("--foo", Args["bar;O":str], alias=['-f'], action=store_value(True))
     ],
-    main_args=Args["wild":AnyParam, "text":str, "num":int, "boolean":bool:False]
+    main_args=Args["text":str, "wild":AnyParam, "num":int, "boolean":bool:False]
 )
 ```
 
@@ -53,14 +53,18 @@ alc = Alconna(
 
 对于主命令, 需要通过`[nameA|nameB]`的形式来指定主命令的多项命令名称; 对于命令选项, 需要通过`name|alias`的形式来指定选项的名称与别名,
 
-`<xxx>`代表参数, 如`<value:int>`等价于`Args['value':int]`, `<message>`等价于`Args['message':AnyParam]`
+`<xxx>` 代表参数, 如`<value:int>`等价于`Args['value':int]`, `<message>`等价于`Args['message':str]`
 
+`[xxx]` 代表该参数为可选参数, 等价于 `<xxx;O>`, 具体参考 [可选参数](../basic/alconna-args.mdx#optional-args)
+
+`#xxx` 代表该命令节点的帮助信息, 若不写入则默认帮助信息为命令名
 :::caution 注意!
 
-如果写入了`<...xxx>`, 此参数表示该处为 `AllParam`, 会截断之后的解析操作
+`<..xx>` 参数表示该处为 `AnyParam`, `<...xxx>` 参数表示该处为 `AllParam`
+
+而 `AllParam` 参数一旦解析成功, 其会截断之后的解析操作
 
 :::
 
-针对option, `[xxx]`参数代表`store_val(xxx)`的`action`
+针对option, `&xxx` 代表 `store_val(xxx)` 的 `action`
 
-`#xxx` 代表该命令节点的帮助信息, 若不写入则默认帮助信息为命令名

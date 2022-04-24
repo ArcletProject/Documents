@@ -5,24 +5,25 @@ title: 为什么一定要很多Option?
 
 ## 减少 Option 的使用
 
-利用 `@` 与 `?` 前缀, 我们可以在 Args 中模拟出一个option:
+利用 `K` 与 `O` 标识符，我们可以在 Args 中模拟出一个 option：
 
 :::info
 
-`@` 与 `?`的作用请看这里: [`Args`](../basic/alconna-args.mdx)
+`K` 与 `O` 的作用请看这里: [参数标识符](../basic/alconna-args.mdx#标识符控制)
 
 :::
 
 
 ```python
 from arclet.alconna import Alconna, Args
+
 alc = Alconna(
     "cut_img",
-    Args["@?--width":int:1280, "@?--height":int:720]
+    Args["--width;O|K":int:1280, "--height;O|K":int:720]
 )
 ```
 
 import { TerminalApp } from "@site/src/components/Teminal.js";
 import {oplike} from "@site/src/components/commandlines.js";
 
-<TerminalApp lines={oplike} height={180}/>
+<TerminalApp lines={oplike} height={200}/>

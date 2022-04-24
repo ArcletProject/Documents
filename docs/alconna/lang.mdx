@@ -1,0 +1,53 @@
+---
+id: lang-config
+title: 语言配置
+---
+
+自 0.8.3 开始, `Alconna` 内的所有报错信息、提示信息都由一个统一的语言配置文件来控制。
+
+以下是几个示例的语言配置:
+
+```json title="src/alconna/default.lang"
+{
+  "analyser.param_unmatched": "Unmatched params: {target}",
+  "args.key_not_found": "参数 {name} 不存在",
+  "manager.duplicate_command": "命令 {target} 已存在"
+}
+```
+
+可以看出, 每项语言配置都是一个 f-string, 通过 `{target}` 等来指定输出内容。
+
+## 修改语言配置
+
+可以通过如下方式修改语言配置:
+1. `Alconna.load_config_file(path)`
+2. `Alconna.lang_config.change_lang(key, value)`
+
+### load_config_file
+
+该方法用于加载一个语言配置文件, 该文件应当是一个 JSON 格式的文件.
+
+该文件不必包含默认配置中的所有项, 只需要包含需要修改的项即可.
+
+### change_lang
+
+该方法用于修改指定的语言项.
+
+其中 `key` 参数必须存在于语言配置中, 否则将会抛出异常.
+
+
+```python {5-6}
+from arclet.alconna import Alconna, lang_config, Option
+
+alc = Alconna("!command", is_raise_exception=True) + Option("--bar", "foo:str")
+lang_config.change_lang(
+    "analyser.param_unmatched",
+    "以下参数没有被正确解析哦~\n: {target}\n请主人检查一下命令是否正确输入了呢~",
+)
+```
+
+import { TerminalApp } from "@site/src/components/Teminal.js";
+import {custom_lang} from "@site/src/components/commandlines.js";
+
+
+<TerminalApp lines={custom_lang} height={240}/>

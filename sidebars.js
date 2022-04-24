@@ -50,12 +50,13 @@ module.exports = {
             'help-doc',
             'alconna-pattern',
             'duplication',
+            'fuzzy-match',
           ].map(value => `alconna/util/${value}`)
         },
         'alconna/analysis',
         {
           type: 'category',
-          label: "细节",
+          label: "细节应用",
           items: [
             'strange-command',
             'much-args',
@@ -66,6 +67,7 @@ module.exports = {
         },
         'alconna/commandline',
         'alconna/manager',
+        'alconna/lang-config',
         'alconna/extra',
         'alconna/changelog',
       ]

@@ -5,11 +5,13 @@ title: 奇怪的命令
 
 ## 正则命令头
 
-`Alconna` 的 `header` 与 `command`支持写入正则表达式, 所以以下命令是可以的
+依据标准构造格式中关于命令头部的特殊形式, 我们可以构建如下实用命令:
 
 ```python
-w = Alconna(command=f"查询{AnyStr}天气")
-d = Alconna(headers=[".ra", f".d{AnyDigit}"])
+from arclet.alconna import Alconna
+
+w = Alconna("查询{city}天气")
+d = Alconna(".rd{count:int}")
 ```
 
 import { TerminalApp } from "@site/src/components/Teminal.js";

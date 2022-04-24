@@ -10,32 +10,22 @@ import { TerminalApp } from "@site/src/components/Teminal.js";
 `Args` 是一个特殊的类，用来包装`command`中的`args`, 即命令参数, 如
 
 ```python
-from arclet.alconna import Args, AnyStr, AnyDigit, Option
-opt = Option("test", args=Args(foo=AnyStr, num=AnyDigit).default(foo="bar"))
+from arclet.alconna import Args, Option
+opt = Option("test", args=Args(foo=str, num=int).default(foo="bar"))
 ```
+
 或
+
 ```python
 from arclet.alconna import Args, Option
 opt = Option("test", args=Args["foo":str:"bar", "num":int])
 ```
 
-:::tip
-
-在Args中, `AnyStr`与`str`是等价的, 其他类型同理
-
-:::
-
-:::caution
-
-`AnyStr`这一类可以format进普通字符中, 作为正则表达式, 但是`str`肯定不行
-
-:::
-
 `Args` 构造时需要格式为Key-Value-Default的多个参数, 或传入多个slice对象
 
 推荐使用Args相关的魔术方法，如
 ```python
->>> ar = Args["test":bool:True]["aaa":str:"bbb"] << Args["perm":AnyStr:"de"] + ["month", int]
+>>> ar = Args["test":bool:True]["aaa":str:"bbb"] << Args["perm":str:"de"] + ["month", int]
 >>> ar
 Args('test': '(True|False)' = 'True', 'aaa': '(.+)' = 'bbb', 'perm': '(.+)' = 'de', 'month': '(\d+)')
 >>> ar1 = Args.foo['bar', ...]
@@ -59,6 +49,37 @@ Args('bar', <class 'inspect._empty'>)
 
 若extra为`ignore`, 则Args会把这个未知类型当作AnyParam处理
 
+### separator
+
+`Args` 也如 `CommandNode` 一样能够接受一个`separator`参数, 其值默认为 `' '`
+
+Args 的 separator 仅在包含多个参数的 `Args` 中有效，如下所示:
+
+```python
+Command(
+    ...,
+    Separator("main_sep"),
+    Segment(
+        Name("opt1"),
+        Separator("opt1_sep"),
+        Segment(
+            Param("value1"),
+            Separator("args_sep"),
+            Param("value2"),
+            Separator("args_sep"),
+            ...,
+            Param("valueN")
+        )
+    ),
+    Separator("main_sep"),
+    Segment(
+        Name("opt2"),
+        Separator("opt2_sep"),
+        ...
+    )
+)
+```
+
 ## AnyParam 与 AllParam
 
 `AnyParam`与`AllParam`是特殊的两种参数类型, 作用分别为**单参**泛匹配与**全参**泛匹配
@@ -69,14 +90,16 @@ Args('bar', <class 'inspect._empty'>)
 
 ```python
 from arclet.alconna import AnyParam, AllParam, Alconna, Args
+
 test1 = Alconna(
-        command="/test",
-        main_args=Args["wild":AnyParam],
-    )
+    command="/test",
+    main_args=Args["wild":AnyParam],
+)
+
 test2 = Alconna(
-        command="/test",
-        main_args=Args["wild":AllParam],
-    )
+    command="/test",
+    main_args=Args["wild":AllParam],
+)
 ```
 
 `test1`只能将`foo`匹配给`wild`
@@ -89,86 +112,113 @@ test2 = Alconna(
 
 :::
 
-## 前缀控制
+## 标识符控制
 
-`Args`每位参数的key可以加有前缀, 以为该参数增加特殊的含义
+`Args`每位参数的 key 可以加有后缀作为标识符, 用来赋予该参数特殊的功能
 
-目前有7种前缀, 为`*xxx`, `!xxx`, `**xxx`, `#xxx`, `@xxx`, `?xxx`, `_xxx`
+目前有 7 种标识符, 为 `S`、`W`、`A`、`F`、`K`、`O` 和 `H`
+
+标识符应与 key 以 `;` 分隔, 用 `'|'` 区分
 
 ### multi args
 
-通过在`key`前面加上`*`或`**`, 可以让该`value`可以接受指定类型的不定数量的参数, 但不会像`AllParam`一样截断解析操作
+标识符 `S` 和 `W` 可以让该`value`可以接受指定类型的不定数量的参数, 但不会像`AllParam`一样截断解析操作
 
-`*` 前缀表示当前参数为可变长非键值对参数, 类似函数中的`*args`.
-`**` 前缀表示当前参数为可变长键值对参数, 类似函数中的`**kwargs`.
+`S` 表示当前参数为可变长非键值对参数, 类似函数中的`*args`.
+`W` 表示当前参数为可变长键值对参数, 类似函数中的`**kwargs`.
 
 ```python
 from arclet.alconna import Args, Option
-opt = Option("test", Args["*foo":str])
-opt1 = Option("test", Args["**foo":str])
+
+opt = Option("test", Args["foo;S":str])
+opt1 = Option("test", Args["foo;W":str])
 ```
 
 现在你可以尝试输入如下命令:
 
 import {multi_arg} from "@site/src/components/commandlines.js";
 
-<TerminalApp lines={multi_arg} height={200}/>
+<TerminalApp lines={multi_arg} height={240}/>
+
+:::tip
+
+正整数也可以作为标识符, 其会作为 `S` 的限制性操作. 如 `key;3` 表示需要传入 0 至 3 个参数。
+
+:::
 
 ### anti args
 
-通过在`key`前面加上`!`, 可以让该`value`不能接受指定的参数.
+标识符 `A` 可以让该 `value` 不能接受指定的参数.
 
 ```python
 from arclet.alconna import Args, Option
-opt = Option("test", Args["!foo":int])
-opt1 = Option("test", Args["!foo":["a", "b", "c"]])
-opt2 = Option("test", Args["!foo":"(.+?)/(.+?)\.py"])
+
+opt = Option("test", Args["foo;A":int])
+opt1 = Option("test", Args["foo;A":["a", "b", "c"]])
+opt2 = Option("test", Args["foo;A":"(.+?)/(.+?)\.py"])
 ```
 
 import {anti_arg} from "@site/src/components/commandlines.js";
 
-<TerminalApp lines={anti_arg} height={240}/>
+<TerminalApp lines={anti_arg} height={300}/>
 
 ### optional args
 
-通过在`key`前面加上`?`, 可以让该`value`成为可选参数.
+标识符 `O` 可以让该 `value` 成为可选参数.
 
 可选参数在解析失败时(包括default为空时)不会抛出异常, 而是跳过.
 
 ```python
 from arclet.alconna import Args, Option
+
 opt = Option("test", Args["foo":int])
-opt1 = Option("test", Args["?foo":int])
+opt1 = Option("test", Args["foo;O":int])
 ```
 import {optional_arg} from "@site/src/components/commandlines.js";
 
-<TerminalApp lines={optional_arg} height={240}/>
+<TerminalApp lines={optional_arg} height={300}/>
 
 ### kwonly args
 
-通过在`key`前面加上`@`, 可以让该`value`在获取参数时必须有`{key}=`的字样.
+标识符 `K` 可以让该 `value` 在获取参数时必须有 `{key}=` 的字样.
 
 ```python
 from arclet.alconna import Args, Option
-opt = Option("test", Args["@foo":int])
+
+opt = Option("test", Args["foo;K":int])
 ```
 
 import {kwonly_arg} from "@site/src/components/commandlines.js";
 
-<TerminalApp lines={kwonly_arg} height={240}/>
+<TerminalApp lines={kwonly_arg} height={300}/>
 
 ### hidden type_hint
 
-通过在`key`前面加上`_`, 可以让该`value`在help_string打印时不显示其类型
+标识符 `H` 可以让该 `value` 在 help_text 打印时不显示其类型
 
 ```python
 from arclet.alconna import Args, Alconna
+
 alc = Alconna("test", main_args=Args["foo":int])
-alc1 = Alconna("test1", main_args=Args["_foo":int])
+alc1 = Alconna("test1", main_args=Args["foo;H":int])
 ```
 import {hidden} from "@site/src/components/commandlines.js";
 
-<TerminalApp lines={hidden} height={240}/>
+<TerminalApp lines={hidden} height={300}/>
+
+### force type
+
+标识符 `F` 可以让传入的一个 `value` 不经过内部的类型转换
+
+```python
+from arclet.alconna import Args, Alconna
+
+alc = Alconna("command", Args["foo;F":int])
+```
+
+import {force_arg} from "@site/src/components/commandlines.js";
+
+<TerminalApp lines={force_arg} height={200}/>
 
 ## 特殊类型
 
@@ -179,6 +229,7 @@ import {hidden} from "@site/src/components/commandlines.js";
 ```python
 from typing import Union
 from arclet.alconna import Args, Option
+
 opt = Option("test", Args["foo":["bar", "baz"]])
 opt1 = Option("test", Args["foo":Union[int, bool]])
 ```

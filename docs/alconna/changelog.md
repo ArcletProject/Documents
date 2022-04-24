@@ -3,6 +3,44 @@ id: changelog
 title: 更新日志
 ---
 
+## Alconna 0.8.x:
+
+### Alconna 0.8.0:
+1. `Option`的`alias`现在需要传入List[str]，而不是str。
+2. `help_text`内置两个预选板块`Usage`和`Example`, 编写规则为`"xxx Usage:xxx; Example:xxx;"`。
+3. 加入`TypePattern`, 作用为简单的类型转换器, 其可以设置前置转换器, 即可以`str -> Path -> bytes`。
+4. 加入命令的模糊匹配, 在`Alconna`中传入`is_fuzzy_match`参数, 可以设置是否模糊匹配。
+5. `AlconnaString`参数规则修改, 现在`<xx>`表示必选, `[xx]`表示可选, `&xx`表示action的值。
+6. `ArgparseHelpTextFormatter`相关格式修改
+
+### Alconna 0.8.1:
+修复了一些严重的bug。
+
+### Alconna 0.8.2:
+1. 修改了一些docstring
+2. 修改参数前缀, 现需要以后缀形式传入, 以`';'`为开头, 并用`'|'`分割。
+3. 参数前缀现通过单个大写字母表示, 具体对应如下:
+* `'S'` <= `'*'`
+* `'W'` <= `'**'`
+* `'O'` <= `'?'`
+* `'K'` <= `'@'`
+* `'H'` <= `'_'`
+* `'F'` <= `'#'`
+* `'A'` <= `'!'`
+4. 参数标识符现增加数字, 以表示指定长度的可变参数, 如`'foo;S'`表示能接收任意长度的可变参数, `'foo;3'`表示接收长度为3的可变参数。
+5. `Args`现在允许传入分隔符, 通过`Args.separate(xx)`或`Args / xx`设置
+6. 加入`pattern`装饰器函数, 用以便捷的创建`ArgPattern`对象
+7. 加入`delegate`装饰器函数, 用以便捷的创建`Alconna`对象
+
+### Alconna 0.8.3:
+1. 命令头的正则支持格式修改, 由原来的`f"{表达式}"`改为`"{名称:类型或表达式}"`
+2. 加入语言文件配置, 可以通过`Alconna.load_config_file`加载自定义的语言文件, 格式为`json`
+3. 为选项与子命令的匹配也加入了模糊匹配
+4. 选项与子命令的`separator`可以传入空字符串, `Alconna`会据此自动分割
+5. 部分API修改, 暂时去除`from_dict`方法
+6. 修复了一些bug
+
+
 ## Alconna 0.7.x:
 
 ### Alconna 0.7.0:

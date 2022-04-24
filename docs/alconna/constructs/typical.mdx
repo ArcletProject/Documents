@@ -13,21 +13,6 @@ import TabItem from '@theme/TabItem';
 
 依据这个命令结构，你可以逐步构建你的 Alconna 了。
 
-```
-Alconna(
-    command,
-    header,
-    options,
-    main_args,
-    is_raise_exception,
-    action,
-    namespace,
-    separator,
-    help_text,
-)
-```
-
-
 标准方法需要四大类参数：
 
 ### command
@@ -49,6 +34,22 @@ alc = Alconna(
     ],
 )
 ```
+
+:::tip 特殊的 command
+
+Alconna 对于 `command` 应用有特殊的构建规则
+
+其可以像 `AlconnaFormat` 那样通过 `'xxx{name:type|pattern}xxx'` 来生成正则表达式, 并将匹配结果传递给 `Arpamar.header`
+
+其中 `name` 与 `type` 都可以留空, `type|pattern` 留空时当作`'str'`
+
+```python
+from arclet.alconna import Alconna
+
+alc = Alconna("abc{foo:int}def")
+```
+
+:::
 
 
 ### main_args
@@ -72,11 +73,12 @@ alc = Alconna(
 
 :::tip
 
-`Alconna`同样继承于`CommandNode`, 所以你可以传入字符串来构造main_args, 例如:
+`Alconna` 同样继承于 `CommandNode`, 所以你可以传入字符串来构造main_args, 例如:
 
 ```python
-from arclet.alconna import Alconna, store_bool
-alc = Alconna("test_bool", main_args="foo:str", action=store_bool(True))
+from arclet.alconna import Alconna, store_value
+
+alc = Alconna("test_bool", main_args="foo:str", action=store_value(True))
 ```
 
 :::
@@ -100,7 +102,7 @@ alc = Alconna(
 )
 ```
 
-:::tip header拓展
+:::info header拓展
 
 在 v0.5.3 中, 命令头支持传入非文本消息, 例如:
 
@@ -183,6 +185,7 @@ alc = Alconna(
 
 ```python
 from arclet.alconna import Alconna, Option
+
 alc = Alconna("test") + Option("--foo", "bar")
 ```
 
@@ -197,6 +200,7 @@ alc = Alconna("test") + Option("--foo", "bar")
 - 通过 `analyser_type` 参数来传入自定义解析器类型
 - 通过 `formatter` 参数来传入自定义的帮助文本格式器
 - 通过 `behaviors` 参数来传入可用的解析行为器
+- 通过 `is_fuzzy_match` 参数来选择是否开启模糊匹配
 
 :::note reset_namespace
 

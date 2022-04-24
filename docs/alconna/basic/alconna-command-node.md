@@ -20,17 +20,20 @@ title: 命令节点
 1.正常方式构造`Args`:
 ```python
 from arclet.alconna.base import CommandNode, Args
+
 CommandNode(name='test', args=Args(key1='value1', key2='value2'))
 ```
 2.魔术方式构造`Args`:
 ```python
 from arclet.alconna.base import CommandNode, Args
+
 CommandNode(name='test', args=Args['key1':'value1', 'key2':'value2'])
 ```
 
 3.纯文字传入`Args`:
 ```python
 from arclet.alconna.base import CommandNode
+
 CommandNode(name='test', args="key1:value1, key2:value2")
 ```
 
@@ -68,6 +71,7 @@ from arclet.alconna.base import CommandNode
 
 def test(num: int):
     return num + 1
+
 CommandNode("test", action=test)
 ```
 这等同于:
@@ -76,10 +80,27 @@ from arclet.alconna.base import CommandNode, Args
 
 def test(num: int):
     return num + 1
+
 CommandNode("test", Args["num":int], action=test)
 ```
 
 另外`Alconna`提供了预制的action, 你可以在`alconna.builtin.actions`里找到:
-- store_bool: 存储一个布尔值
-- store_const: 存储一个整数
+- store_value: 存储一个任意值
 - version: 返回一个以元组形式存储的版本信息
+
+## Separator 与 compact
+
+`CommandNode` 通过 `separator` 与其 args 进行区分, 确保解析时, node 的 name 可以被正确分割.
+
+若 `separator` 为空, 则 `CommandNode` 中的 `compact` 状态将会被设置为 `True`
+
+```python
+>>> CommandNode("foo", Args["bar":int], separator="").is_compact
+True
+```
+
+此时依然能够正确解析:
+```python
+>>> analyse_node(_, "foo3")
+{'foo': {'bar': 3}}
+```

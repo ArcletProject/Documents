@@ -5,11 +5,13 @@ title: 把命令变小
 
 ## 快捷命令
 
-在`v0.6.4`中, `Alconna`加入了方法`shortcut`，用来为命令添加快捷指令。
+在`v0.6.4`中, `Alconna` 加入了方法 `shortcut`，用来为命令添加快捷指令。
 
 顾名思义, 就是把一长串命令用一个特别的字符串来表示, 以便更方便的使用。
 
 ```python
+from arclet.alconna import Alconna, Subcommand, Option, Args
+
 github = Alconna(
     command="!github",
     options=[
@@ -24,7 +26,7 @@ github = Alconna(
                 Option(
                     "--pulls",
                     Args["pull":str:"pulls_id"],
-                    help_text"获取仓库的pull, 可以指定pull id"
+                    help_text="获取仓库的pull, 可以指定pull id"
                 ),
                 Option(
                     "--branch",
@@ -33,10 +35,10 @@ github = Alconna(
                 ),
                 Option(
                     "--codeview",
-                    Args["path":str:"file_path"]
+                    Args["path":str:"file_path"],
                     help_text="预览 path"
                 ),
-            ]
+            ],
             args=Args["repo":str:"repo_name"],
             help_text="查看github仓库的信息"
         ),
@@ -46,4 +48,4 @@ github = Alconna(
 import { TerminalApp } from "@site/src/components/Teminal.js";
 import {shortcut} from "@site/src/components/commandlines.js";
 
-<TerminalApp lines={shortcut} height={200}/>
+<TerminalApp lines={shortcut} height={240}/>

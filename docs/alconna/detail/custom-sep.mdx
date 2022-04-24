@@ -10,20 +10,25 @@ title: 不止是命令解析……
 `Alconna` 不强制 shell-like 的指令, 即支持自定义分隔符, 所以以下命令是可以的
 
 ```python
+from arclet.alconna import Alconna, Args, AnyParam
+
 alc = Alconna(
-    command=f"{AnyStr}今天",
+    command="{name}今天",
     main_args=Args["item":AnyParam],
-    actions=lambda x: x.split("和")
-).separate("吃")
+    action=lambda x: x.split("和"),
+    separator='吃'
+)
 ```
 import { TerminalApp } from "@site/src/components/Teminal.js";
 import {custom_sep} from "@site/src/components/commandlines.js";
 
 
-<TerminalApp lines={custom_sep} height={200}/>
+<TerminalApp lines={custom_sep} height={240}/>
 
 :::tip PS.
 
-如果你想用空字符串作为分隔符的话,为什么不试试第一种写法呢？
+虽然说 `CommandNode` 支持空字符串作为分隔符, 但是主命令的分隔符不能是空字符串, 否则解析会出错
+
+如果你想在主命令用空字符串作为分隔符的话, 为什么不试试第一种写法呢？
 
 :::

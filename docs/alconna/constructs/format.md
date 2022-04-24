@@ -9,8 +9,8 @@ title: Formatter 方式
 ```python
 from arclet.alconna import AlconnaFormat, Args
 alc = AlconnaFormat(
-    "lp user {target} perm set {perm} {value}",
-    {"target": str, "perm": str, "value": Args["value":bool:True]}
+    "lp user {target} perm set {node}",
+    {"target": str, "node": Args["perm":str, "value":bool:True]},
 )
 ```
 
@@ -18,13 +18,12 @@ alc = AlconnaFormat(
 ```python
 from arclet.alconna import Alconna, Subcommand, Option, Args
 alc = Alconna(
-    command="lp",
+    "lp",
     options=[
         Option("user", Args["target":str]),
         Subcommand(
             "perm",
-            Option("set", Args["perm":str]),
-            args=Args["value":bool:True]
+            [Option("set", Args["perm":str, "value":bool:True])]
         )
     ]
 )
@@ -43,7 +42,7 @@ alc = Alconna(
 
 其值可以是Args类型, ArgPattern类型, 甚至是`Option`类型, `Alconna`会依据前后关系自动划分实际类型 
 
-:::tip
+:::info
 
 在v0.7.3后, `{}`内的标识符不必出现在`format_args`中, `Alconna`会自动将其转换为`AnyParam`类型
 

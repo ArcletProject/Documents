@@ -124,15 +124,15 @@ alc = AlconnaFire(test)
 
 静态的变量, 或者说不需要动态创建的变量, 例如`AbstractEventLoop`等, 可以通过`ArgPattern`来指定。
 ```python
-from arclet.alconna.types import ArgPattern, add_check, PatternToken
+from arclet.alconna.types import ArgPattern, set_converter, PatternToken
 from arclet.alconna import AlconnaFire
 import asyncio
-add_check(
+set_converter(
     ArgPattern(
         regex_pattern="loop",
         token=PatternToken.REGEX_TRANSFORM,
         origin_type=asyncio.AbstractEventLoop,
-        transform_action=lambda x: asyncio.get_event_loop(),
+        converter=lambda x: asyncio.get_event_loop(),
         alias="loop"
     )
 )
@@ -169,3 +169,38 @@ alc = AlconnaFire(test)
 alc.parse("test class?name=abc")
 ```
 则会打印出obj的name值`'abc'`
+
+## Delegate
+
+0.8.2 版本中新增了一个函数 `delegate`
+
+其接受一个特定的类, 格式如下:
+
+```python
+from arclet.alconna import Args, Option, Subcommand, delegate
+
+@delegate
+class MyCommand:
+    """主命令帮助"""
+    prefix = "!" # or ["!", "！"]
+    aa = Args["foo":int]
+    opt1 = Option("opt")
+    sub1 = Subcommand("sub", args=Args["bar":str])
+
+MyCommand.parse("!MyCommand 123 opt")
+```
+
+也可以
+
+```python
+from arclet.alconna import Args, Option, Subcommand, delegate
+
+class MyCommand:
+    """主命令帮助"""
+    prefix = "!" # or ["!", "！"]
+    aa = Args["foo":int]
+    opt1 = Option("opt")
+    sub1 = Subcommand("sub", args=Args["bar":str])
+
+delegate(MyCommand).parse("!MyCommand 123 opt")
+```

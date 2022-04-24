@@ -84,10 +84,10 @@ alconna = Alconna("指令", Args.foo[str], options=[Option("my选项")])
 这里说明我们需要匹配内容为 "指令 something:str"的消息, 并把 "something" 赋予参数名 "foo"; 该指令可以使用 "my选项" 这个命令选项
 
 而后另有4种构造方式, 可以满足不同使用者的需求:
-- koishi-like: 以类似`koishi`中指令创建的方式创建`Alconna`
-- format: 以类似f-string的格式创建`Alconna`
-- click-like: 以类似`click`中指令创建的方式创建`Alconna`
-- fire-like: 以类似`python-fire`中指令创建的方式创建`Alconna`
+- koishi-like: 以类似 `koishi` 中指令创建的方式创建 `Alconna`
+- format: 以类似f-string的格式创建 `Alconna`
+- click-like: 以类似 `click` 中指令创建的方式创建 `Alconna`
+- fire-like: 以类似 `python-fire` 中指令创建的方式创建 `Alconna`
 
 ## 使用 `AlconnaDispatcher`
 

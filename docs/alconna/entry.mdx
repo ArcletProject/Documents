@@ -16,42 +16,56 @@ import TabItem from '@theme/TabItem';
 
 一个`Alconna`实例的主要结构如下:
 
-(该结构仅为示例，实际结构会有所不同)
-
-```
+```txt title="该结构仅为示例，实际结构会有所不同"
+-- Commands --
 Alconna
-├── command_name
-├── command_args
-├── command_headers
-├── options
-│   │── Subcommand
-│   │   │── sub_name
-│   │   │── sub_options
-│   │   │   │── Option
-│   │   │   │   │── sub_opt_name
-│   │   │   │   └── sub_opt_arg
-│   │   │   └── ...
-│   │   └── sub_main_arg
-│   │── Option
-│   │   │── opt_name
-│   │   └── opt_arg
-│   └── ...
+├── command: String
+├── main_args: Args
+├── headers: List[String]
+├── options: List[Option | Subcommand]
+├── separator: String
 └── ...
 
+-- Args --
+Arg
+├── name: String
+├── value: ArgPattern | TypePattern | Any
+├── default: Any
+└── flag: Map[String, Boolen]
+
+Args
+├── arguments
+│   ├── name1: Arg1
+│   ├── name2: Arg2
+│   └── ...
+└── separator: String
+
+-- Components --
+Option
+├── name: String
+├── args: Args
+├── aliases: List[String]
+└── separator: String
+
+Subcommand
+├── name: String
+├── args: Args
+├── options: List[Option]
+└── separator: String
 ```
 
-其中
-- command_name: 命令名称
-- command_args: 命令参数
-- command_headers: 命令头
-- sub_name: 子命令名称
-- sub_opt_name: 子命令选项名称
-- sub_opt_arg: 子命令选项参数
-- sub_main_arg: 子命令主参数
-- opt_name: 命令选项名称
-- opt_arg: 命令选项参数
+若将其线性化，则表示为:
 
-解析时，先判断命令头(即 header + command), 再判断options与main args, 这里options与main args在输入指令时是不分先后的
+```abnf
+ARG : [Text | Bool | Number | Object];
+ARGS : ARG *(ARGS_SEP ARG);
+OPTION : NAME/ALIAS [OPT_SEP ARGS];
+SUBCOMMAND : NAME [SUB_SEP ARGS] *(SUB_SEP OPTION);
+COMMAND : [HEADERS] COMMAND [MAIN_SEP ARGS] *(MAIN_SEP OPTION/SUBCOMMAND);
+```
+
+当命令传入给 `Alconna` 解析时, 解析器将首先检查命令的头部(即 header + command),
+再尝试将参数作为 `Option` 或 `Subcommand` 解析, 如果解析失败, 则将参数作为 main args 解析.
 
 ## 构造方法
 
@@ -69,6 +83,7 @@ Alconna
 
 ```python
 from arclet.alconna import Alconna
+
 alc = Alconna(...)
 ```
 
@@ -78,7 +93,8 @@ alc = Alconna(...)
 
 ```python
 from arclet.alconna import AlconnaString
-alc = AlconnaString
+
+alc = AlconnaString(...)
 ```
 
 </TabItem>
@@ -87,6 +103,7 @@ alc = AlconnaString
 
 ```python
 from arclet.alconna import AlconnaFormat
+
 alc = AlconnaFormat(...)
 ```
 
@@ -96,7 +113,10 @@ alc = AlconnaFormat(...)
 
 ```python
 from arclet.alconna import AlconnaDecorate
+
 alc = AlconnaDecorate(...)
+
+
 @alc.build_command()
 def test(...):
     pass
@@ -108,17 +128,19 @@ def test(...):
 
 ```python
 from arclet.alconna import AlconnaFire
+
 def test(...):
     pass
+
 alc = AlconnaFire(test)
 ```
 
 </TabItem>
 </Tabs>
 
-
 ## 命令样例
-现在，我们假设一命令如下:
+
+现在，我们假设需要构建的命令如下:
 ```
 /pip
 Usage:
@@ -145,14 +167,20 @@ from arclet.alconna import Alconna, Option, Subcommand, Args
 import sys
 
 pip = Alconna(
-    "/pip",
+    command="/pip",
     options=[
-        Subcommand("install", [Option("--upgrade")], Args.pak[str]),
+        Subcommand(
+            "install", [
+                Option("--upgrade"),
+                Option("-i|--index-url", Args.url["url"])
+            ],
+            Args.pak[str]
+        ),
         Subcommand("show", args=Args.pak[str]),
         Subcommand("help", args=Args.command[str]),
         Option("list"),
         Option("--retries", Args.retries[int]),
-        Option("-t| --timeout", Args.sec[int]),
+        Option("-t|--timeout", Args.sec[int]),
         Option("--exists-action", Args.action[str]),
         Option("--trusted-host", Args.host_name["url"])
     ]
@@ -166,17 +194,25 @@ if __name__ == "__main__":
 
 现在你可以尝试如下输入:
 ```powershell
-python test_alconna.py "/pip install cesloi --upgrade --trusted-host http://pypi.douban.com/simple"
+python test_alconna.py "/pip install cesloi --upgrade -i http://pypi.douban.com/simple --trusted-host pypi.douban.com"
 ```
 
 正常情况下, 会输出：
 ```python
-{'upgrade': Ellipsis, 'pak': 'cesloi', 'hostname': 'http://pypi.douban.com/simple'}
+{'upgrade': Ellipsis, 'url': 'http://pypi.douban.com/simple', 'pak': 'cesloi', 'host_name': 'pypi.douban.com'}
 ```
 
 ## 注意事项
 
-要想写好一个 `Alconna`，你首先需要理清楚自己的**命令结构**
+要想写好一个 `Alconna`，你首先需要理清楚自己需要的**命令**和对应的**命令结构**
+
+拼接的字符串, 或是复杂的自然语句, 这些并不能算作严格意义上的命令, 你可以直接使用正则解析, 或是使用 NLP
+
+:::info
+
+这并不意味着 Alconna 无法处理上述格式. 相反, 若提供了有效的命令结构, Alconna 一样可以解析这些命令
+
+:::
 
 一般，你需要把命令分为四个部分:
 

@@ -9,7 +9,7 @@ title: Alconna 前身
 
 相比 `Alconna`, `CommandAnalysis` 结构更加简单, 但遗憾的是只能解析字符串命令
 
-```pycon
+```python
 >>> from command import *
 # 与上面Alconna的对比
 >>> v = Command(headers=[""], main=["img", [["download", ["-p", AnyStr]], ["upload", [["-u", AnyStr], ["-f", AnyStr]]]]])

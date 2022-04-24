@@ -9,8 +9,10 @@ title: Args可不只能传入一个参数
 
 ```python
 from arclet.alconna import Alconna, Args, Option
+
 cal = Alconna(
     command="Cal",
+    main_args=Args["num_a":int, "num_b":int],
     options=[
         Option("-sum"),
         Option("-div"),
@@ -19,14 +21,13 @@ cal = Alconna(
             Args["decimal":int]
         ),
     ],
-    main_args=Args["num_a":int, "num_b":int]
 )
 ```
 
 import { TerminalApp } from "@site/src/components/Teminal.js";
 import {much_args} from "@site/src/components/commandlines.js";
 
-<TerminalApp lines={much_args} height={220}/>
+<TerminalApp lines={much_args} height={300}/>
 
 :::tip PS.
 
