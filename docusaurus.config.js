@@ -62,11 +62,11 @@ module.exports = {
             position: 'left',
             label: 'Arclet介绍',
           },
-          // {
-          //   to: '/blog',
-          //   label: 'Blog',
-          //   position: 'left'
-          // },
+          {
+            to: '/blog',
+            label: 'Blog',
+            position: 'left'
+          },
           {
             href: 'https://github.com/ArcletProject',
             label: 'GitHub',
