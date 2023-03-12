@@ -5,9 +5,8 @@ title: 入门
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import {App, DataLine} from "@site/src/components/termy";
 
-## 实例结构
+## Alconna 结构
 
 :::caution 前提
 
@@ -22,7 +21,7 @@ import {App, DataLine} from "@site/src/components/termy";
 Alconna
 ├── command: String
 ├── main_args: Args
-├── headers: List[Any] | List[[Any, String]]
+├── headers: List[String]
 ├── options: List[Option | Subcommand]
 ├── separator: String
 └── ...
@@ -30,17 +29,16 @@ Alconna
 -- Args --
 Arg
 ├── name: String
-├── value: BasePattern | Any
+├── value: ArgPattern | TypePattern | Any
 ├── default: Any
-├── separator: String
-└── flags: List[String]
+└── flag: Map[String, Boolen]
 
 Args
 ├── arguments
 │   ├── name1: Arg1
 │   ├── name2: Arg2
 │   └── ...
-└── ...
+└── separator: String
 
 -- Components --
 Option
@@ -52,7 +50,7 @@ Option
 Subcommand
 ├── name: String
 ├── args: Args
-├── options: List[Option | Subcommand]
+├── options: List[Option]
 └── separator: String
 ```
 
@@ -60,10 +58,9 @@ Subcommand
 
 ```abnf
 ARG : [Text | Bool | Number | Object];
-ARG_SEP : String;
-ARGS : ARG *(ARG_SEP ARG);
+ARGS : ARG *(ARGS_SEP ARG);
 OPTION : NAME/ALIAS [OPT_SEP ARGS];
-SUBCOMMAND : NAME [SUB_SEP ARGS] *(SUB_SEP OPTION/SUBCOMMAND);
+SUBCOMMAND : NAME [SUB_SEP ARGS] *(SUB_SEP OPTION);
 COMMAND : [HEADERS] COMMAND [MAIN_SEP ARGS] *(MAIN_SEP OPTION/SUBCOMMAND);
 ```
 
@@ -72,11 +69,10 @@ COMMAND : [HEADERS] COMMAND [MAIN_SEP ARGS] *(MAIN_SEP OPTION/SUBCOMMAND);
 
 ## 构造方法
 
-`Alconna` 目前提供了5种构造方式, 其中后面四种方法需要安装 `arclet-alconna-tools` 包.
-
+`Alconna` 目前提供了5种构造方式, 其中 `typical` 为默认的构造方式
 - [typical](./constructs/typical.mdx)
 - [koishi-like](./constructs/koishi-like.md)
-- [format-like](./constructs/format.md)
+- [formatter](./constructs/format.md)
 - [click-like](./constructs/click-like.md)
 - [fire-like](./constructs/fire-like.md)
 
@@ -96,7 +92,7 @@ alc = Alconna(...)
 无法传入子命令与报错选项
 
 ```python
-from arclet.alconna.tools import AlconnaString
+from arclet.alconna import AlconnaString
 
 alc = AlconnaString(...)
 ```
@@ -106,7 +102,7 @@ alc = AlconnaString(...)
 无法写入帮助信息、命令头与选项别名
 
 ```python
-from arclet.alconna.tools import AlconnaFormat
+from arclet.alconna import AlconnaFormat
 
 alc = AlconnaFormat(...)
 ```
@@ -116,12 +112,12 @@ alc = AlconnaFormat(...)
 无法传入子命令与报错选项
 
 ```python
-from arclet.alconna.tools import AlconnaDecorate
+from arclet.alconna import AlconnaDecorate
 
 alc = AlconnaDecorate(...)
 
 
-@alc.command()
+@alc.build_command()
 def test(...):
     pass
 ```
@@ -131,7 +127,7 @@ def test(...):
 复杂的构造方式, 强制使用报错选项
 
 ```python
-from arclet.alconna.tools import AlconnaFire
+from arclet.alconna import AlconnaFire
 
 def test(...):
     pass
@@ -142,7 +138,7 @@ alc = AlconnaFire(test)
 </TabItem>
 </Tabs>
 
-## 示范
+## 命令样例
 
 现在，我们假设需要构建的命令如下:
 ```
@@ -164,28 +160,30 @@ General Options:
   --trusted-host <hostname>   Mark this host or host:port pair as trusted, even though it does not have valid or any HTTPS.
 ```
 
-根据上述的`Alconna结构`与前文的`命令结构`分析，我们可以得到这样的 `Alconna`:
+根据上述的Alconna结构与前文的命令结构分析，我们可以得到这样的 `Alconna`:
 
 ```python title="/src/test_alconna.py"
 from arclet.alconna import Alconna, Option, Subcommand, Args
 import sys
 
 pip = Alconna(
-    "/pip",
-    Subcommand(
-        "install", [
-            Option("--upgrade"),
-            Option("-i|--index-url", Args.url["url"])
-        ],
-        Args.pak[str]
-    ),
-    Subcommand("show", Args.pak[str]),
-    Subcommand("help", Args.command[str]),
-    Option("list"),
-    Option("--retries", Args.retries[int]),
-    Option("-t|--timeout", Args.sec[int]),
-    Option("--exists-action", Args.action[str]),
-    Option("--trusted-host", Args.host_name["url"])
+    command="/pip",
+    options=[
+        Subcommand(
+            "install", [
+                Option("--upgrade"),
+                Option("-i|--index-url", Args.url["url"])
+            ],
+            Args.pak[str]
+        ),
+        Subcommand("show", args=Args.pak[str]),
+        Subcommand("help", args=Args.command[str]),
+        Option("list"),
+        Option("--retries", Args.retries[int]),
+        Option("-t|--timeout", Args.sec[int]),
+        Option("--exists-action", Args.action[str]),
+        Option("--trusted-host", Args.host_name["url"])
+    ]
 )
 
 if __name__ == "__main__":
@@ -195,16 +193,18 @@ if __name__ == "__main__":
 ```
 
 现在你可以尝试如下输入:
+```powershell
+python test_alconna.py "/pip install cesloi --upgrade -i http://pypi.douban.com/simple --trusted-host pypi.douban.com"
+```
 
-<App>
-  <DataLine type="input" prompt="$">python test_alconna.py "/pip install cesloi --upgrade -i http://pypi.douban.com/simple --trusted-host pypi.douban.com"</DataLine>
-  <DataLine> &#123;'host_name': 'pypi.douban.com', 'pak': 'cesloi', 'url': 'http://pypi.douban.com/simple'&#125; </DataLine>
-</App>
-
+正常情况下, 会输出：
+```python
+{'upgrade': Ellipsis, 'url': 'http://pypi.douban.com/simple', 'pak': 'cesloi', 'host_name': 'pypi.douban.com'}
+```
 
 ## 注意事项
 
-想正确使用 `Alconna`，你首先需要明确自己需求的**命令**和对应的**命令结构**
+要想写好一个 `Alconna`，你首先需要理清楚自己需要的**命令**和对应的**命令结构**
 
 拼接的字符串, 或是复杂的自然语句, 这些并不能算作严格意义上的命令, 你可以直接使用正则解析, 或是使用 NLP
 

@@ -6,10 +6,6 @@ const darkCodeTheme = require('prism-react-renderer/themes/vsDark');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-
-};
-
-module.exports = {
   i18n: {
     defaultLocale: "zh-CN",
     locales: ["zh-CN"],
@@ -29,7 +25,6 @@ module.exports = {
   favicon: 'img/favicon.ico',
   organizationName: 'ArcletProject', // Usually your GitHub org/user name.
   projectName: 'Arclet', // Usually your repo name.
-
   presets: [
     [
       'classic',
@@ -39,13 +34,21 @@ module.exports = {
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl: 'https://github.com/ArcletProject/Documents/edit/main/docs/',
         },
+        blog: {
+          blogTitle: 'Arclet Blog',
+          blogDescription: 'Something write for Arclet',
+          postsPerPage: 'ALL',
+        },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
       }),
     ],
   ],
-  themes: ['@docusaurus/theme-live-codeblock'],
+  markdown: {
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-live-codeblock', '@docusaurus/theme-mermaid'],
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
@@ -64,7 +67,7 @@ module.exports = {
           },
           {
             to: '/blog',
-            label: 'Blog',
+            label: 'Arclet博客',
             position: 'left'
           },
           {
@@ -85,8 +88,8 @@ module.exports = {
                 to: '/docs/alconna/tutorial',
               },
               {
-                label: 'Edoves',
-                to: '/docs/edoves/tutorial',
+                label: 'NEPattern',
+                to: '/docs/nepattern/tutorial',
               },
             ],
           },
@@ -94,16 +97,16 @@ module.exports = {
             title: '相关项目',
             items: [
               {
-                label: 'Edoves',
-                href: 'https://github.com/ArcletProject/Edoves'
-              },
-              {
                 label: 'Alconna',
                 href: 'https://github.com/ArcletProject/Alconna'
               },
               {
-                label: 'Letoderea',
-                href: 'https://github.com/ArcletProject/Letoderea'
+                label: 'NEPattern',
+                href: 'https://github.com/ArcletProject/NEPattern'
+              },
+              {
+                label: 'Edoves',
+                href: 'https://github.com/ArcletProject/Edoves'
               }
             ]
           },
@@ -130,3 +133,5 @@ module.exports = {
       },
     }),
 };
+
+module.exports = config;

@@ -1,0 +1,172 @@
+---
+id: before-start
+title: 开始之前
+---
+
+## 命令结构
+
+我们假设一条命令为
+```
+sdist upload -r pypi
+```
+
+若以json结构去表示这个命令, 可能得出两种结构
+
+a:
+```json
+{
+  "name": "sdist",
+  "parts" : [
+    {
+      "slot": "upload",
+      "type": "single-str-match",
+      "value": "upload",
+      "space_policy": "force",
+      "optional": false
+    },
+    {
+      "slot": "repository",
+      "type": "single-str-match",
+      "value": "-r",
+      "space_policy": "force",
+      "optional": true
+    },
+    {
+      "slot": "repository_name",
+      "type": "any-str-match",
+      "value": "pypi",
+      "optional": true
+    }
+  ]
+}
+```
+b:
+```json
+{
+  "name": "sdist",
+  "separate": " ",
+  "options": [
+    {
+      "name": "upload",
+      "dest": "upload",
+      "separate": " ",
+      "options": [
+        {
+          "name": "-r",
+          "dest": "repository",
+          "separate": " ",
+          "args": [
+            {
+              "name": "name",
+              "type": "any-str-match",
+              "default": "pypi"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+:::note 参数说明
+
+`single-str-match`, 表示参数只能为 **指定字符串**
+
+`any-str-match`, 表示参数可以为 **任意字符串**
+
+:::
+
+显而易见的是，第一种的结构的层数更少，第二种的结构的拓展性更好
+
+对于 `Alconna`, 我们选择了第二种结构，并以面向对象的方式进行实现
+
+## CommandAnalysis
+
+`Alconna` 的前身是 [`Cesloi-CommandAnalysis`](https://github.com/RF-Tar-Railt/Cesloi-CommandAnalisys)
+
+相比 `Alconna`, `CommandAnalysis` 结构更加简单, 但是只支持解析纯文本命令
+
+import {App, DataLine, Input} from "@site/src/components/termy";
+
+<App typeDelay={60}>
+  <Input prompt="▲">python</Input>
+  <Input prompt=">>>">from command import *</Input>
+  <Input prompt=">>>">cmd = Command(headers=[""], main=["img", [["download", ["-p", AnyStr]], ["upload", [["-u", AnyStr], ["-f", AnyStr]]]]])</Input>
+  <Input prompt=">>>">cmd.analysis("img upload -u https://www.baidu.com")</Input>
+  <DataLine>'https://www.baidu.com'</DataLine>
+  <Input prompt=">>>">cmd.analysis("img upload -f img.png")</Input>
+  <DataLine>'img.png'</DataLine>
+</App>
+
+显而易见的，`CommandAnalysis` 选择了第二种结构，这使得其看上去更加复杂，但是其实现起来更加简单
+
+
+`CommandAnalysis` 的构造方法:
+
+```python
+Command(headers=[""], main=["name", "args/subcommand/subcommand_list", "separate"])
+```
+
+其中
+- headers: 呼叫该命令的命令头列表
+- name: 命令名称
+- args: 命令参数
+- separate: 命令分隔符,分隔name与args,通常情况下为 " " (空格)
+- subcommand: 子命令, 格式与main相同
+- subcommand_list: 子命令集, 可传入多个子命令
+
+## 命令抽象
+
+对于所有命令，我们可以将其抽象为两个部分, 即 **命令头(headers)** 与 **命令主体(main)**
+
+命令头常见的例如 斜杠"/",  半角句号".",  感叹号"!",  全角句号"。"  等等，是作为区分平常语句与命令的 **唯一标识符**
+
+命令主体则是命令的主要信息部分，其可以抽象为三个部分, 即 **名称(name)**, **参数(args)** 和 **分隔符(separate)**
+
+以常见命令 `/ping 127.0.0.1` 为例,
+
+`/` 是命令头, `ping` 是命令名称, ` `是命令分隔符, `127.0.0.1`是命令参数
+
+其结构为
+
+```json
+{
+  "header": "/",
+  "main": {
+    "name": "ping",
+    "separate": " ",
+    "args": "127.0.0.1"
+  }
+}
+```
+
+转换为对应的匹配结构为
+
+```json
+{
+  "headers": ["/"],
+  "main": {
+    "name": "ping",
+    "separate": " ",
+    "args": [
+      {
+        "name": "ip",
+        "type": "any-str-match"
+      }
+    ]
+  }
+}
+```
+
+
+这样我们就可以使用 `CommandAnalysis` 来解析这条命令了：
+
+<App typeDelay={60}>
+  <Input prompt="▲">python</Input>
+  <Input prompt=">>>">from command import *</Input>
+  <Input prompt=">>>">cmd = Command(headers=["/"], main=["ping", [["ip", AnyIP]]])</Input>
+  <Input prompt=">>>">cmd.analysis("/ping 192.168.0.1")</Input>
+  <DataLine>'192.168.0.1'</DataLine>
+</App>
+

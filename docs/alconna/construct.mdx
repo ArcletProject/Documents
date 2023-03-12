@@ -1,0 +1,34 @@
+---
+id: construct
+title: 构造方法
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+## 标准方式
+
+
+首先给出 `Alconna` 的构造函数签名:
+
+```python
+
+class Alconna(Subcommand):
+    def __init__(
+        self,
+        *args: Option | Subcommand | str | THeader | Any | Args | Arg,
+        action: ArgAction | Callable | None = None,
+        meta: CommandMeta | None = None,
+        namespace: str | Namespace | None = None,
+        separators: str | set[str] | Sequence[str] | None = None,
+        analyser_type: type[TAnalyser] | None = None,
+        behaviors: list[ArparmaBehavior] | None = None,
+        formatter_type: type[TextFormatter] | None = None
+    ):
+        ...
+
+```
+
+我们可以看到 `args` 参数可以接受 `Alconna` 所需要的基本参数:
+- command (`str | Any`): 命令名称, 主要传入 `str` 类型; 其他类型会被转换为 `BasePattern` 类型
+- headers (`THeader`): 命令头, 用于匹配命令头, 详见 [命令头](./header.mdx)

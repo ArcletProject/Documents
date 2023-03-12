@@ -14,6 +14,7 @@
   --ifm-color-primary-lighter: rgb(102, 132 ,212);
   --ifm-color-primary-lightest: rgb(146, 152 , 224);
   --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
 .docusaurus-highlight-code-line {
@@ -23,7 +24,7 @@
   padding: 0 var(--ifm-pre-padding);
 }
 
-html[data-theme='dark'] .docusaurus-highlight-code-line {
-  background-color: rgba(0, 0, 0, 0.4);
+html[data-theme='dark'] {
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.4);
 }
 

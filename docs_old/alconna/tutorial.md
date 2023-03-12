@@ -41,4 +41,4 @@ pip install --upgrade arclet-alconna
 - `Alconna` 集成了模糊匹配、自定义语言文件等功能
 
 ## 性能参考
-在 i5-10210U 处理器上, `Alconna` 的性能大约为 `36000~71000 msg/s`, 取决于 `Alconna` 的复杂程度
+在 i5-10210U 处理器上, `Alconna` 的性能大约为 `41000~250000 msg/s`, 取决于 `Alconna` 的复杂程度

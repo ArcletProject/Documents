@@ -1,5 +1,5 @@
 ---
-slug: alconna principle
+slug: alconna-principle
 title: Alconna Principle
 authors:
   name: Tar Railt
@@ -9,11 +9,11 @@ authors:
 tags: [Alconna]
 ---
 
-# 起点
+## 起点
 
 Alconna 的强大很大一部分在于 Args 和 BasePattern, 其完成了 Alconna 的类型系统
 
-## BasePattern
+### BasePattern
 
 BasePattern 依据其 `Mode` 选择对应的验证方式, 并且利用 `accepts`, `previous` ,`validator` 完成了不同阶段的验证
 
@@ -25,7 +25,7 @@ UnionArg, MultiArg, SeqArg, MapArg 则是 BasePattern的不同子类
 
 其中 UnionArg 含有 `for_equal` 与 `for_validate`, 运行验证同一类型的参数或同一内容的参数
 
-## Args
+### Args
 
 Args 负责的是将复数个 `name: type|value: default` 转变为 `name: pattern: default: flag`
 
@@ -42,12 +42,12 @@ def query(name: str):
 a = Args["name", query]["mode", {"foo": 0, "bar": 1, "baz": 2, "qux": 3}]
 ```
 
-# 核心
+## 核心
 
 Alconna 的核心部件是 `arclet.alconna.analysis` 内的 `parts` 与 `analyser`, 负责的功能有
 预编译、 参数提取 与 解析调度
 
-## "预编译"
+### "预编译"
 
 预编译是在 解析器初始化时完成的。 Analyser 上繁多的属性有很大一部分是负责记录预编译的信息
 
@@ -62,7 +62,7 @@ Alconna 的核心部件是 `arclet.alconna.analysis` 内的 `parts` 与 `analyse
 
 :::
 
-## 参数提取
+### 参数提取
 
 消息从parse传入后, 首先交给 Analyser的process方法, 其负责将以 `DataCollection` 协议约束的数据源转换为
 `List[Any, StrMounter]` 类型的集合.
@@ -106,7 +106,7 @@ reduce_data 方法(或称 pushback) 则相反, 先对放回的数据进行有效
 
 整个过程, 除开因子域分隔符需要对字符串进行替换消除外, 不涉及到数据集合的空间改变.
 
-## 解析调度
+### 解析调度
 
 消息处理完毕后, Analyser 会首先尝试匹配头部内容, 这部分由 analyse_header 完成.
 
@@ -146,7 +146,7 @@ analyse_unmatched_param 会尝试前缀匹配, 若有组件成功匹配则返回
 
 在这之后, 依据获取的数据, Analyser会调度各部件解析方法, 并尝试捕获部件解析方法因解析失败而抛出的异常.
 
-### requires
+#### requires
 
 Option 与 Subcommand 都包括有特殊的 requires 参数, 以应对需要"FOO(SEP)BAR"的情况, 也是为了解决[命令深度的问题](https://github.com/ArcletProject/Alconna/discussions/44)
 
