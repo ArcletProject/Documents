@@ -70,6 +70,13 @@ const sidebars = {
         // 'alconna/changelog',
       ]
     },
+    {
+      type: 'category',
+      label: "NEPattern",
+      items: [
+        'nepattern/tutorial',
+      ]
+    }
     // {
     //   type: 'category',
     //   label: 'Letoderea',

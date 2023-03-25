@@ -17,8 +17,8 @@ const config = {
     },
   },
   title: 'Arclet Project Document',
-  tagline: 'Docs for Alconna, Edoves and so on',
-  url: 'https://arcletproject.github.io',
+  tagline: 'Arclet 下所有项目的文档 (施工中)',
+  url: 'https://arclet.top',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -105,8 +105,8 @@ const config = {
                 href: 'https://github.com/ArcletProject/NEPattern'
               },
               {
-                label: 'Edoves',
-                href: 'https://github.com/ArcletProject/Edoves'
+                label: 'Letoderea',
+                href: 'https://github.com/ArcletProject/Letoderea'
               }
             ]
           },

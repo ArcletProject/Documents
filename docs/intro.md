@@ -12,6 +12,7 @@ title: Arclet 概览
 
 - [Alconna](https://github.com/ArcletProject/Alconna) - 命令解析器
 - [Edovse](https://github.com/ArcletProject/Edovse) - 抽象机器人框架
+- [Letoderea](https://github.com/ArcletProject/Letoderea) - 高效事件系统
 - [NEPattern](https://github.com/ArcletProject/NEPattern) - 复杂正则匹配
 - [Alconna-Graia](https://github.com/ArcletProject/Alconna-Graia) - Alconna 与 Graia 的集成
 - [ArcletTS](https://github.com/ArcletProject/ArcletTS) - TypeScript 版本的 Arclet 项目

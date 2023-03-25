@@ -29,6 +29,37 @@ class Alconna(Subcommand):
 
 ```
 
-我们可以看到 `args` 参数可以接受 `Alconna` 所需要的基本参数:
+其中主要的 `args` 参数可以接受 `Alconna` 所需要的基本参数:
 - command (`str | Any`): 命令名称, 主要传入 `str` 类型; 其他类型会被转换为 `BasePattern` 类型
 - headers (`THeader`): 命令头, 用于匹配命令头, 详见 [命令头](./header.mdx)
+- args (`Args` | `Arg`): 命令参数, 用于匹配命令参数, 详见 [命令参数](./args.mdx)
+- options (`Option`): 命令选项, 用于匹配命令选项, 详见 [命令选项](./node.mdx#Option)
+- subcommands (`Subcommand`): 子命令, 用于匹配子命令, 详见 [子命令](./node.mdx#Subcommand)
+
+类似如下:
+
+```python
+from alconna import Alconna, Arg, Args, Option, Subcommand
+
+alc = Alconna(
+    "test",
+    ["/", "!"],
+    Arg("arg1", int),
+    Args["arg2", int]["arg3", int],
+    Option("-o|--option", Args["foo", str]["bar", str]),
+    Subcommand(
+        "sub",
+        Args["arg2", int]["arg3", int],
+        Option("-o|--option", Args["foo", str]["bar", str])
+    )
+)
+```
+
+其他参数的含义如下:
+- action (`ArgAction | Callable | None`): 命令执行函数, 详见 [命令执行函数](./action.mdx)
+- meta (`CommandMeta | None`): 命令元数据, 详见 [命令元数据](./meta.mdx)
+- namespace (`str | Namespace | None`): 命令的命名空间, 详见 [命名空间](./config.mdx#Namespace)
+- separators (`str | set[str] | Sequence[str] | None`): 命令分隔符, 详见 [命令分隔符](./node.mdx#separators)
+- analyser_type (`type[TAnalyser] | None`): 命令分析器类型, 详见 [命令分析器](./analyser.mdx)
+- behaviors (`list[ArparmaBehavior] | None`): 命令行参数行为, 详见 [命令行参数行为](./arparma.mdx#Behavior)
+- formatter_type (`type[TextFormatter] | None`): 命令行参数格式化器类型, 详见 [命令行参数格式化器](./formatter.mdx)
