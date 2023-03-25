@@ -49,7 +49,7 @@ function Feature({title, description}: FeatureItem) {
       {/*</div>*/}
       <div className="text--center padding-horiz--md">
         <h3>{title}</h3>
-        <p>{description}</p>
+        <span>{description}</span>
       </div>
     </div>
   );

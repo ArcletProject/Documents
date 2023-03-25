@@ -87,15 +87,15 @@ b:
 
 相比 `Alconna`, `CommandAnalysis` 结构更加简单, 但是只支持解析纯文本命令
 
-import {App, DataLine, Input} from "@site/src/components/termy";
+import {App, DataLine} from "@site/src/components/termy";
 
 <App typeDelay={60}>
-  <Input prompt="▲">python</Input>
-  <Input prompt=">>>">from command import *</Input>
-  <Input prompt=">>>">cmd = Command(headers=[""], main=["img", [["download", ["-p", AnyStr]], ["upload", [["-u", AnyStr], ["-f", AnyStr]]]]])</Input>
-  <Input prompt=">>>">cmd.analysis("img upload -u https://www.baidu.com")</Input>
+  <DataLine type="input" prompt="▲">python</DataLine>
+  <DataLine type="input" prompt=">>>">from command import *</DataLine>
+  <DataLine type="input" prompt=">>>">cmd = Command(headers=[""], main=["img", [["download", ["-p", AnyStr]], ["upload", [["-u", AnyStr], ["-f", AnyStr]]]]])</DataLine>
+  <DataLine type="input" prompt=">>>">cmd.analysis("img upload -u https://www.baidu.com")</DataLine>
   <DataLine>'https://www.baidu.com'</DataLine>
-  <Input prompt=">>>">cmd.analysis("img upload -f img.png")</Input>
+  <DataLine type="input" prompt=">>>">cmd.analysis("img upload -f img.png")</DataLine>
   <DataLine>'img.png'</DataLine>
 </App>
 
@@ -163,10 +163,10 @@ Command(headers=[""], main=["name", "args/subcommand/subcommand_list", "separate
 这样我们就可以使用 `CommandAnalysis` 来解析这条命令了：
 
 <App typeDelay={60}>
-  <Input prompt="▲">python</Input>
-  <Input prompt=">>>">from command import *</Input>
-  <Input prompt=">>>">cmd = Command(headers=["/"], main=["ping", [["ip", AnyIP]]])</Input>
-  <Input prompt=">>>">cmd.analysis("/ping 192.168.0.1")</Input>
+  <DataLine type="input" prompt="▲">python</DataLine>
+  <DataLine type="input" prompt=">>>">from command import *</DataLine>
+  <DataLine type="input" prompt=">>>">cmd = Command(headers=["/"], main=["ping", [["ip", AnyIP]]])</DataLine>
+  <DataLine type="input" prompt=">>>">cmd.analysis("/ping 192.168.0.1")</DataLine>
   <DataLine>'192.168.0.1'</DataLine>
 </App>
 

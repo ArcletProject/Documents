@@ -1,9 +1,9 @@
 ---
-id: alconna-args
+id: args
 title: 命令参数
 ---
 
-import { App, DataLine, Input } from "@site/src/components/termy";
+import { App, DataLine } from "@site/src/components/termy";
 
 ## Args
 
@@ -24,21 +24,21 @@ opt = Option("test", Args["foo", str, "bar"]["num", int])
 `Args` 推荐的构造方式如下：
 
 <App>
-  <Input prompt=">>>">arg = Args["test", bool, True]["aaa", str, "bbb"]</Input>
-  <Input prompt=">>>">arg</Input>
+  <DataLine type="input" prompt=">>>">arg = Args["test", bool, True]["aaa", str, "bbb"]</DataLine>
+  <DataLine type="input" prompt=">>>">arg</DataLine>
   <DataLine>Args('test': bool = 'True', 'aaa': str = 'bbb')</DataLine>
-  <Input prompt=">>>">arg &lt;&lt; Args["perm", str, "de"] + ("month", int) </Input>
-  <Input prompt=">>>">arg</Input>
+  <DataLine type="input" prompt=">>>">arg &lt;&lt; Args["perm", str, "de"] + ("month", int) </DataLine>
+  <DataLine type="input" prompt=">>>">arg</DataLine>
   <DataLine>Args('test': bool = 'True', 'aaa': str = 'bbb', 'perm': str = 'de', 'month': int)</DataLine>
-  <Input prompt=">>>">arg1 = Args.foo["bar", ...]</Input>
-  <Input prompt=">>>">arg1</Input>
+  <DataLine type="input" prompt=">>>">arg1 = Args.foo["bar", ...]</DataLine>
+  <DataLine type="input" prompt=">>>">arg1</DataLine>
   <DataLine>Args('foo': 'bar' = 'Ellipsis')</DataLine>
 </App>
 
 
 `Args.default()` 用来设置 `Args(**kwargs)` 时的默认值, 但是不会覆盖 `Args["key", type, default]` 的默认值
 
-### Arg
+## Arg
 
 `Args` 是由多个`Arg`组成的, 一个`Arg`代表一个参数, 如
 
@@ -52,12 +52,69 @@ arg3 = Args(Arg("foo", str, "bar"), Arg("num", int))
 assert arg1 == arg2 == arg3
 ```
 
+`Arg` 的构造方式如下:
+
+```python
+Arg(
+    name: str,
+    value: TAValue | None = None,
+    field: Field[_T] | _T | None = None,
+    seps: str | Iterable[str] = " ",
+    notice: str | None = None,
+    flags: list[ArgFlag] | None = None,
+)
+```
+
+- `name` 为参数名, 用于在`Args`与解析结果中标识该参数
+- `value` 为参数值, 用于在`Args`中标识该参数的类型或者匹配值
+- `field` 为参数的`Field`, 用于在`Args`中标识该参数的默认值，默认值生成器等; 也可以直接传入默认值
+- `seps` 为参数的分隔符, 用于在`Args`中标识该参数的分隔符, 默认为`' '`(空格)
+- `notice` 为参数的提示, 用于在`Args`中标识该参数的提示, 默认为`None`
+- `flags` 为参数的标识符, 用于在`Args`中标识该参数的标识符, 默认为`None`
+
+`flag` 目前有 3 种, 分别为 `?: ArgFlag.OPTIONAL`、`!: ArgFlag.ANTI` 和 `/: ArgFlag.HIDDEN`
+
+其中 `name` 保留了一些特殊形式, 用于便捷传入 `notice` 和 `flags`
+
+其形式为 `name;flags#notice`, `;` 之后为 `flags`, `#` 之后为 `notice`:
+
+```python
+from arclet.alconna import Arg, ArgFlag
+
+arg1 = Arg("foo;/?#bar")
+arg2 = Arg("foo", notice="bar", flags=[ArgFlag.OPTIONAL, ArgFlag.HIDDEN])
+
+assert arg1 == arg2
+```
+
+
+### Field
+
+`Field` 是如下定义的：
+
+```python
+class Field(Generic[_T]):
+    """标识参数单元字段"""
+    default: _T = dc_field(default=None)
+    default_factory: Callable[[], _T] = dc_field(default=lambda: None)
+    alias: str | None = dc_field(default=None)
+    completion: Callable[[], str | list[str]] | None = dc_field(default=None)
+```
+
+其中 `default` 与 `default_factory` 用于给出默认值
+
+:::tip
+
+需要注意的是, default 为 `None` 相当于没有默认值
+
+如果你需要使自己的默认值为 `None`, 你应该使用 `arclet.aclonna.Empty`, 其会在解析之后自动替换
+
+:::
+
 
 ### separator
 
-`Args` 也如 `CommandNode` 一样能够接受一个`separator`参数, 其值默认为 `' '`
-
-Args 的 separator 仅在包含多个参数的 `Args` 中有效，如下所示:
+在命令解析过程中, `Args` 会根据每个 `Arg` 的 `seps` 来进行分隔:
 
 ```python
 Command(
@@ -67,12 +124,12 @@ Command(
         Name("opt1"),
         Separator("opt1_sep"),
         Segment(
-            Param("value1"),
-            Separator("args_sep"),
-            Param("value2"),
-            Separator("args_sep"),
+            Arg("value1"),
+            Separator("arg1_sep"),
+            Arg("value2"),
+            Separator("arg2_sep"),
             ...,
-            Param("valueN")
+            Arg("valueN")
         )
     ),
     Separator("main_sep"),
@@ -84,25 +141,23 @@ Command(
 )
 ```
 
-## AnyParam 与 AllParam
+## AnyOne 与 AllParam
 
-`AnyParam`与`AllParam`是特殊的两种参数类型, 作用分别为**单参**泛匹配与**全参**泛匹配
-
-您可以在`alconna.types`里找到它们
+`AnyOne`与`AllParam`是特殊的两种参数类型, 作用分别为**单参**泛匹配与**全参**泛匹配
 
 对于同个命令, `/test foo bar 123` 来讲
 
 ```python
-from arclet.alconna import AnyParam, AllParam, Alconna, Args
+from arclet.alconna import AnyOne, AllParam, Alconna, Args
 
 test1 = Alconna(
     "/test",
-    Args["wild":AnyParam],
+    Args["wild", AnyOne],
 )
 
 test2 = Alconna(
     "/test",
-    Args["wild":AllParam],
+    Args["wild", AllParam],
 )
 ```
 
@@ -116,141 +171,81 @@ test2 = Alconna(
 
 :::
 
-## 标识符控制
+## kwonly args
 
-`Args`每位参数的 key 可以加有后缀作为标识符, 用来赋予该参数特殊的功能
-
-目前有 7 种标识符, 为 `S`、`W`、`A`、`F`、`K`、`O` 和 `H`
-
-标识符应与 key 以 `;` 分隔, 用 `'|'` 区分
-
-### multi args
-
-标识符 `S` 和 `W` 可以让该`value`可以接受指定类型的不定数量的参数, 但不会像`AllParam`一样截断解析操作
-
-`S` 表示当前参数为可变长非键值对参数, 类似函数中的`*args`.
-`W` 表示当前参数为可变长键值对参数, 类似函数中的`**kwargs`.
+`Alconna` 提供了一个特殊的 `KeyWordVar`, 用于标识一个参数为关键字参数:
 
 ```python
-from arclet.alconna import Args, Option
+from arclet.alconna import Args, Alconna, KeyWordVar
 
-opt = Option("test", Args["foo;S":str])
-opt1 = Option("test", Args["foo;W":str])
+alc = Alconna("test", Args["foo", KeyWordVar(int)])
 ```
 
-现在你可以尝试输入如下命令:
+这会使得该参数只能通过关键字参数的形式传入, 例如:
 
-import {multi_arg} from "@site/src/components/commandlines.js";
 
-<App lines={multi_arg} height={240}/>
+<App>
+  <DataLine type="input" prompt=">>>">test foo=123</DataLine>
+  <DataLine>&#123;'foo': 123&#125;</DataLine>
+  <DataLine type="input" prompt=">>>">test 123</DataLine>
+  <DataLine>
+    Traceback (most recent call last):<br/>
+    --File "&lt;stdin&gt;", line 1, in &lt;module&gt;<br/>
+    arclet.alconna.exceptions.ParamsUnmatched: 123 missing its key.<br/>
+    Do you forget to add 'foo='?
+  </DataLine>
+</App>
 
-:::tip
+`KeyWordVar` 可以传入一个 `sep` 参数, 用于标识该关键字参数的分隔符, 默认为`'='`:
 
-正整数也可以作为标识符, 其会作为 `S` 的限制性操作. 如 `key;3` 表示需要传入 0 至 3 个参数。
+```python
+from arclet.alconna import Args, Alconna, KeyWordVar
 
+alc = Alconna("test", Args["foo", KeyWordVar(int, sep=":")])
+```
+
+这样该参数就可以通过 `foo:123` 的形式传入了
+
+## multi args
+
+`Alconna` 提供了另一个特殊的 `MultiVar`, 用于标识一个参数为不定参数:
+
+```python
+from arclet.alconna import Args, Alconna, MultiVar
+
+alc = Alconna("test", Args["foo", MultiVar(int)])
+```
+
+这会使得该参数可以接受多个相同类型的参数, 例如:
+
+<App>
+  <DataLine type="input" prompt=">>>">test 123 456 789</DataLine>
+  <DataLine>&#123;'foo': (123, 456, 789)&#125;</DataLine>
+</App>
+
+`MultiVar` 可以传入一个 `flag` 参数, 用于标识该可变参数的类型, 目前支持的类型有:
+
+- `*`: 传入0个或多个参数
+- `+`: 传入1个或多个参数
+- 任意大于0的整数: 传入指定数量的参数
+
+
+::: tip
+
+`MultiVar` 与 `KeyWordVar` 可以结合使用, 例如:
+
+```python
+from arclet.alconna import Args, Alconna, MultiVar, KeyWordVar
+
+alc = Alconna("test", Args["foo", MultiVar(KeyWordVar(int))])
+```
+
+这会使得该参数可以接受多个关键字参数, 例如:
+
+<App>
+  <DataLine type="input" prompt=">>>">test bar=123 baz=456 qux=789</DataLine>
+  <DataLine>&#123;'foo': &#123;'bar': 123, 'baz': 456, 'qux': 789 &#125;&#125;</DataLine>
+</App>
 :::
 
-### anti args
 
-标识符 `A` 可以让该 `value` 不能接受指定的参数.
-
-```python
-from arclet.alconna import Args, Option
-
-opt = Option("test", Args["foo;A":int])
-opt1 = Option("test", Args["foo;A":["a", "b", "c"]])
-opt2 = Option("test", Args["foo;A":"(.+?)/(.+?)\.py"])
-```
-
-import {anti_arg} from "@site/src/components/commandlines.js";
-
-<App lines={anti_arg} height={300}/>
-
-### optional args
-
-标识符 `O` 可以让该 `value` 成为可选参数.
-
-可选参数在解析失败时(包括default为空时)不会抛出异常, 而是跳过.
-
-```python
-from arclet.alconna import Args, Option
-
-opt = Option("test", Args["foo":int])
-opt1 = Option("test", Args["foo;O":int])
-```
-import {optional_arg} from "@site/src/components/commandlines.js";
-
-<App lines={optional_arg} height={300}/>
-
-### kwonly args
-
-标识符 `K` 可以让该 `value` 在获取参数时必须有 `{key}=` 的字样.
-
-```python
-from arclet.alconna import Args, Option
-
-opt = Option("test", Args["foo;K":int])
-```
-
-import {kwonly_arg} from "@site/src/components/commandlines.js";
-
-<App lines={kwonly_arg} height={300}/>
-
-### hidden type_hint
-
-标识符 `H` 可以让该 `value` 在 help_text 打印时不显示其类型
-
-```python
-from arclet.alconna import Args, Alconna
-
-alc = Alconna("test", main_args=Args["foo":int])
-alc1 = Alconna("test1", main_args=Args["foo;H":int])
-```
-import {hidden} from "@site/src/components/commandlines.js";
-
-<App lines={hidden} height={300}/>
-
-### force type
-
-标识符 `F` 可以让传入的一个 `value` 不经过内部的类型转换
-
-```python
-from arclet.alconna import Args, Alconna
-
-alc = Alconna("command", Args["foo;F":int])
-```
-
-import {force_arg} from "@site/src/components/commandlines.js";
-
-<App lines={force_arg} height={200}/>
-
-## 特殊类型
-
-### choice args
-
-通过在`value`传入一个列表或者Union, 可以限定解析时参数的取值范围
-
-```python
-from typing import Union
-from arclet.alconna import Args, Option
-
-opt = Option("test", Args["foo":["bar", "baz"]])
-opt1 = Option("test", Args["foo":Union[int, bool]])
-```
-
-当`foo`的值不在`["bar", "baz"]`中时, `Alconna`会报错
-
-:::tip
-
-如果想达到解析float类型的参数或某个指定的值(如[float, "qux"]), 你可以直接导入`UnionArg`, 然后
-
-```python
-from arclet.alconna import Option, Args
-from arclet.alconna.types import UnionArg
-
-opt = Option("test", Args["foo":UnionArg[float, "qux"]])
-```
-
-这样'foo'就只能为float或者'qux'
-
-:::

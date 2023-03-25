@@ -1,5 +1,7 @@
 import React from 'react';
-import "./data/termynal.css";
+import { ReactElement } from 'react';
+import { DataLine } from './dataline';
+import "./styles/termynal.css";
 
 
 const defaultOptions = {
@@ -12,8 +14,36 @@ const defaultOptions = {
     cursor: '▋',
 }
 
-class App extends React.Component {
-  constructor(props) {
+type TermynalProps = {
+  id?: string;
+  startDelay?: number;
+  typeDelay?: number;
+  lineDelay?: number;
+  progressLength?: number;
+  progressChar?: string;
+  progressPercent?: number;
+  cursor?: string;
+  children?: ReactElement[];
+}
+
+
+export class App extends React.Component {
+  public id: string;
+  public children: DataLine[];
+  public cursor: string;
+  public fastVisible: 'visible' | 'hidden';
+  public restartVisible: 'visible' | 'hidden';
+  public startDelay: number;
+  public typeDelay: number;
+  public lineDelay: number;
+  public originalStartDelay: number;
+  public originalTypeDelay: number;
+  public originalLineDelay: number;
+  public progressLength: number;
+  public progressChar: string;
+  public progressPercent: number;
+
+  constructor(props: TermynalProps) {
     super(props);
     this.id = props.id || "termynal";
     this.originalStartDelay = this.startDelay = props.startDelay || defaultOptions.startDelay;
@@ -26,7 +56,6 @@ class App extends React.Component {
     this.children = (props.children || []).map((v) => new DataLine(v.props));
     this.fastVisible = 'visible';
     this.restartVisible = 'hidden';
-    //this.init();
   }
   render() {
     return (
@@ -64,7 +93,7 @@ class App extends React.Component {
   }
 
   async start() {
-    await this._wait(this.startDelay);
+    await this.wait(this.startDelay);
     for (let line of this.children) {
 
       const type = line.data.type;
@@ -73,17 +102,17 @@ class App extends React.Component {
       if (type === 'input') {
           line.data.cursor = this.cursor;
           await this.type(line);
-          await this._wait(delay);
+          await this.wait(delay);
       }
 
       else if (type === 'progress') {
           await this.progress(line);
-          await this._wait(delay);
+          await this.wait(delay);
       }
 
       else {
         line.visibility = 'visible';
-        await this._wait(delay);
+        await this.wait(delay);
         this.forceUpdate()
       }
       if (type === 'input') {
@@ -99,27 +128,21 @@ class App extends React.Component {
     this.forceUpdate()
   }
 
-  /**
-   * Animate a typed line.
-   * @param {DataLine} line - The line element to render.
-   */
-  async type(line) {
-    const chars = [...line.data.value];
+
+  async type(line: DataLine) {
+    const chars = Array.from(line.data.value!);
     line.data.value = '';
     line.visibility = 'visible';
     for (let char of chars) {
       const delay = line.data.typeDelay || this.typeDelay;
-      await this._wait(delay);
+      await this.wait(delay);
       line.data.value += char;
       this.forceUpdate()
     }
   }
 
-  /**
-   * Animate a progress bar.
-   * @param {DataLine} line - The line element to render.
-   */
-  async progress(line) {
+
+  async progress(line: DataLine) {
     const progressLength = line.data.progressLength || this.progressLength;
     const progressChar = line.data.progressChar || this.progressChar;
     const chars = progressChar.repeat(progressLength);
@@ -127,7 +150,7 @@ class App extends React.Component {
     line.data.value = '';
     line.visibility = 'visible';
     for (let i = 1; i < chars.length + 1; i++) {
-      await this._wait(this.typeDelay);
+      await this.wait(this.typeDelay);
       const percent = Math.round(i / chars.length * 100);
       line.data.value = `${chars.slice(0, i)} ${percent}%`;
       this.forceUpdate()
@@ -137,73 +160,9 @@ class App extends React.Component {
     }
   }
 
-  /**
-   * Helper function for animation delays, called with `await`.
-   * @param {number} time - Timeout, in ms.
-   */
-  _wait(time) {
+
+  wait(time: number) {
       return new Promise(resolve => setTimeout(resolve, time));
   }
 }
 
-class DataLine extends React.Component {
-  constructor(props) {
-    super(props);
-    this.visibility = 'visible'
-    this.data = {};
-    this.data.type = props.type;
-    this.data.cursor = props.cursor;
-    this.data.value = props.value || props.children;
-    this.data.delay = props.delay;
-    this.data.typeDelay = props.typeDelay;
-    this.data.prompt = props.prompt;
-    this.data.progressLength = props.progressLength;
-    this.data.progressChar = props.progressChar;
-    this.data.progressPercent = props.progressPercent;
-  }
-
-  _attributes() {
-    let attrs = {style: {visibility: this.visibility}};
-    for (let prop of Object.keys(this.data)) {
-        let value = this.data[prop];
-        if (value === undefined || value === null) {
-          continue;
-        }
-        // Custom add class
-        if (prop === 'class') {
-          attrs.class = `${value}`
-          continue
-        }
-        if (prop === 'type') {
-          attrs['data-ty'] = `${value}`
-        } else if (prop !== 'value') {
-          attrs[`data-ty-${prop.toLowerCase()}`] = value
-        }
-    }
-    return attrs;
-  }
-  render() {
-    return (
-      <span {...this._attributes()}>{this.data.value || ''}</span>
-    );
-  }
-}
-
-class Input extends DataLine {
-  constructor(props) {
-    super(props);
-    this.data.type = 'input';
-  }
-}
-
-class Progress extends DataLine {
-  constructor(props) {
-    super(props);
-    this.data.type = 'progress';
-  }
-}
-
-
-
-
-export {App, DataLine, Input, Progress} ;

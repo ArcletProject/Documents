@@ -28,6 +28,8 @@ const sidebars = {
         //   ].map(value => `alconna/basic/${value}`)
         // },
         'alconna/construct',
+        'alconna/args',
+        'alconna/header',
         // {
         //   type: 'category',
         //   label: "构造方法",
