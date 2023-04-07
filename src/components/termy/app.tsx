@@ -59,23 +59,25 @@ export class App extends React.Component {
   }
   render() {
     return (
-      <div id={this.id} data-termynal="">
-        <a href='#'
-           style={{visibility: this.fastVisible}}
-           onClick={(e) => {
-            e.preventDefault()
-            this.lineDelay = 0
-            this.typeDelay = 0
-            this.startDelay = 0
-        }} data-terminal-control=''>fast →</a>
-        {this.children.map((v) => v.render())}
-        <a href='#'
-           style={{visibility: this.restartVisible}}
-           onClick={(e) => {
-            e.preventDefault()
-            this.init()
-        }} data-terminal-control=''>restart ↻</a>
-      </div>
+      <p>
+        <div id={this.id} data-termynal="">
+          <a href='#'
+             style={{visibility: this.fastVisible}}
+             onClick={(e) => {
+              e.preventDefault()
+              this.lineDelay = 0
+              this.typeDelay = 0
+              this.startDelay = 0
+          }} data-terminal-control=''>fast →</a>
+          {this.children.map((v) => v.render())}
+          <a href='#'
+             style={{visibility: this.restartVisible}}
+             onClick={(e) => {
+              e.preventDefault()
+              this.init()
+          }} data-terminal-control=''>restart ↻</a>
+        </div>
+      </p>
     )
   }
 

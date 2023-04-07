@@ -54,10 +54,10 @@ const config = {
     ({
       navbar: {
         title: 'ArcletProject',
-        // logo: {
-        //   alt: 'My Site Logo',
-        //   src: 'img/logo.svg',
-        // },
+        logo: {
+          alt: 'Arclet',
+          src: 'img/logo.svg',
+        },
         items: [
           {
             activeBasePath: 'docs',

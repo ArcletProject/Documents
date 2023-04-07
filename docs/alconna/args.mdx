@@ -87,6 +87,28 @@ arg2 = Arg("foo", notice="bar", flags=[ArgFlag.OPTIONAL, ArgFlag.HIDDEN])
 assert arg1 == arg2
 ```
 
+### value
+
+`value` 可以是以下类型:
+
+- 存在于 `nepattern.all_patterns` 中的类型/字符串，用以替换为预制好的 **BasePattern**
+- 字符串，会转换为正则表达式
+- 列表，其中可存放 **BasePattern**、类型或者任意参数值，如字符串或者数字
+- `Union`、`Optional`、`Literal` 等会尝试转换为 `List[Type]`
+- `Dict[type1，type2]`、`List[type]`、`Set[type]`
+- 一般的类型，其会尝试比较传入参数的类型是否与其相关
+- [**AnyOne**、**AllParam**](./args#anyone-%E4%B8%8E-allparam).
+- 预制好的字典, 表示传入值依据该字典的键决定匹配结果
+- `Annotated[type, Callable[..., bool], ...]`，表示为某一类型添加校验器
+- `Callable[[P], T]`，表示会将传入的参数 P 经过该调用对象并将返回值 T 作为匹配结果
+- ...
+
+内置的类型检查包括 `int`、`str`、`float`、`bool`、`'url'`、`'ip'`、`'email'`、`list`、`dict`、`tuple`、`set`、`Any` 、`bytes`、`hex`、`datetime` 等。
+
+
+
+
+
 
 ### Field
 
@@ -171,7 +193,7 @@ test2 = Alconna(
 
 :::
 
-## keyword args
+## Keyword args
 
 `Alconna` 提供了一个特殊的 `KeyWordVar`, 用于标识一个参数为关键字参数:
 
@@ -189,8 +211,8 @@ alc = Alconna("test", Args["foo", KeyWordVar(int)])
   <DataLine>&#123;'foo': 123&#125;</DataLine>
   <DataLine type="input" prompt=">>>">test 123</DataLine>
   <DataLine>
-    Traceback (most recent call last):<br/>
-    --File "&lt;stdin&gt;", line 1, in &lt;module&gt;<br/>
+    <>Traceback (most recent call last):<br/></>
+    <>  File "&lt;stdin&gt;", line 1, in &lt;module&gt;</><br/>
     arclet.alconna.exceptions.ParamsUnmatched: 123 missing its key.<br/>
     Do you forget to add 'foo='?
   </DataLine>
@@ -206,7 +228,7 @@ alc = Alconna("test", Args["foo", KeyWordVar(int, sep=":")])
 
 这样该参数就可以通过 `foo:123` 的形式传入了
 
-## multi args
+## Multi args
 
 `Alconna` 提供了另一个特殊的 `MultiVar`, 用于标识一个参数为不定参数:
 
@@ -221,6 +243,8 @@ alc = Alconna("test", Args["foo", MultiVar(int)])
 <App>
   <DataLine type="input" prompt=">>>">test 123 456 789</DataLine>
   <DataLine>&#123;'foo': (123, 456, 789)&#125;</DataLine>
+  <DataLine type="input" prompt=">>>">test 123</DataLine>
+  <DataLine>&#123;'foo': (123,)&#125;</DataLine>
 </App>
 
 `MultiVar` 可以传入一个 `flag` 参数, 用于标识该可变参数的类型, 目前支持的类型有:
@@ -248,4 +272,252 @@ alc = Alconna("test", Args["foo", MultiVar(KeyWordVar(int))])
 </App>
 :::
 
+## Optional args
 
+通过 `flag` 参数, 我们可以将参数标记为可选参数:
+
+```python
+from arclet.alconna import Args, Alconna, Arg, ArgFlag
+
+alc = Alconna("test", Args["foo", int]["bar;?", str])
+# or
+alc = Alconna("test", Args["foo", int][Arg("bar", str, flags=[ArgFlag.Optional])])
+```
+
+这会使得该参数可以不传入, 例如:
+
+<App>
+  <DataLine type="input" prompt=">>>">test 123</DataLine>
+  <DataLine>&#123;'foo': 123&#125;</DataLine>
+  <DataLine type="input" prompt=">>>">test 123 abc</DataLine>
+  <DataLine>&#123;'foo': 123, 'bar': 'abc'&#125;</DataLine>
+</App>
+
+:::tip
+
+该情形下也可以使用 `typing.Optional` 来标记参数参数:
+
+```python
+from arclet.alconna import Args, Alconna
+from typing import Optional
+
+alc = Alconna("test", Args["foo", int]["bar", Optional[str]])
+```
+
+这等同于:
+
+```python
+alc = Alconna("test", Args["foo", int]["bar", str, Empty])  # 意思为 bar 的默认值是 None
+```
+
+<App>
+  <DataLine type="input" prompt=">>>">test 123</DataLine>
+  <DataLine>&#123;'foo': 123, 'bar': None&#125;</DataLine>
+  <DataLine type="input" prompt=">>>">test 123 abc</DataLine>
+  <DataLine>&#123;'foo': 123, 'bar': 'abc'&#125;</DataLine>
+</App>
+
+:::
+
+:::caution
+
+optional 参数必须在 multi 参数之前，并且 optional flag 不能与 `MultiVar` 同时使用
+
+:::
+
+## Anti args
+
+通过 `flag` 参数, 我们可以将参数标记为反向参数:
+
+```python
+from arclet.alconna import Args, Alconna, Arg, ArgFlag
+
+alc = Alconna("test", Args["foo", int]["bar;!", int])
+# or
+alc = Alconna("test", Args["foo", int][Arg("bar", int, flags=[ArgFlag.Anti])])
+```
+
+这使得该参数可以传入任何不符合该参数类型的参数, 例如:
+
+<App>
+  <DataLine type="input" prompt=">>>">test 123 abc</DataLine>
+  <DataLine>&#123;'foo': 123, 'bar': 'abc'&#125;</DataLine>
+  <DataLine type="input" prompt=">>>">test 123 456</DataLine>
+  <DataLine>
+    <>Traceback (most recent call last):<br/></>
+    <>  File "&lt;stdin&gt;", line 1, in &lt;module&gt;</><br/>
+    arclet.alconna.exceptions.ParamsUnmatched: 参数 456 不正确
+  </DataLine>
+</App>
+
+## Const args
+
+在 `value` 参数中传入一个 `const` 值, 可以将该参数标记为常量参数:
+
+```python
+from arclet.alconna import Args, Alconna
+
+alc = Alconna("test", Args["foo", int]["bar", 123])
+# or
+from typing import Literal
+alc = Alconna("test", Args["foo", int]["bar", Literal[123]])
+```
+
+这会使得该参数只能传入指定的值, 例如:
+
+<App>
+  <DataLine type="input" prompt=">>>">test 123 123</DataLine>
+  <DataLine>&#123;'foo': 123, 'bar': 123&#125;</DataLine>
+  <DataLine type="input" prompt=">>>">test 123 456</DataLine>
+  <DataLine>
+    <>Traceback (most recent call last):<br/></>
+    <>  File "&lt;stdin&gt;", line 1, in &lt;module&gt;</><br/>
+    arclet.alconna.exceptions.ParamsUnmatched: 参数 456 不正确
+  </DataLine>
+</App>
+
+## Union args
+
+在 `value` 参数中传入一个 `typing.Union` 值, 可以将该参数标记为联合参数:
+
+```python
+from arclet.alconna import Args, Alconna
+from typing import Union
+
+alc = Alconna("test", Args["foo", Union[int, bool]])
+```
+
+这会使得该参数可以传入多种类型的参数, 例如:
+
+<App>
+  <DataLine type="input" prompt=">>>">test 123</DataLine>
+  <DataLine>&#123;'foo': 123&#125;</DataLine>
+  <DataLine type="input" prompt=">>>">test true</DataLine>
+  <DataLine>&#123;'foo': True&#125;</DataLine>
+</App>
+
+:::note
+
+此处可以直接使用 `[int, bool]` 作为 `value` 参数
+
+不仅如此，直接使用 `[...]` 可以传入常量参数作为 "choice" 参数:
+
+```python
+alc = Alconna("test", Args["foo", [1, 2, 3]])
+```
+
+这使得该参数只能传入 `1`, `2`, `3` 中的一个, 例如:
+
+<App>
+  <DataLine type="input" prompt=">>>">test 1</DataLine>
+  <DataLine>&#123;'foo': 1&#125;</DataLine>
+  <DataLine type="input" prompt=">>>">test 4</DataLine>
+  <DataLine>
+    <>Traceback (most recent call last):<br/></>
+    <>  File "&lt;stdin&gt;", line 1, in &lt;module&gt;</><br/>
+    arclet.alconna.exceptions.ParamsUnmatched: 参数 4 不正确
+  </DataLine>
+</App>
+
+`[...]` 中可以同时传入类型和常量:
+
+```python
+alc = Alconna("test", Args["foo", [bool, 1, 2, 3]])
+```
+
+更特别的是，此处还可以传入 `"foo|bar"` 这样的字符串:
+
+```python
+alc = Alconna("test", Args["foo", ["abc|def"]])  # 会尝试在 patterns 里寻找 abc 或 def
+# or
+alc = Alconna("test", Args["foo", ["re:abc|def"]])  # 转为正则表达式
+```
+
+:::
+
+## Switch args
+
+在 `value` 参数中传入一个字典, 可以将该参数标记为开关参数:
+
+```python
+from arclet.alconna import Args, Alconna
+
+alc = Alconna("test", Args["foo", {"bar": 123, "baz": 456}])
+```
+
+这就类似于:
+
+```js
+switch (foo) {
+  case "bar": return 123;
+  case "baz": return 456;
+  default: throw new Error("参数不正确");
+}
+```
+
+使得该参数只能传入指定的值, 例如:
+
+<App>
+  <DataLine type="input" prompt=">>>">test bar</DataLine>
+  <DataLine>&#123;'foo': 123&#125;</DataLine>
+  <DataLine type="input" prompt=">>>">test baz</DataLine>
+  <DataLine>&#123;'foo': 456&#125;</DataLine>
+  <DataLine type="input" prompt=">>>">test abc</DataLine>
+  <DataLine>
+    <>Traceback (most recent call last):<br/></>
+    <>  File "&lt;stdin&gt;", line 1, in &lt;module&gt;</><br/>
+    arclet.alconna.exceptions.ParamsUnmatched: 参数 abc 不正确
+  </DataLine>
+</App>
+
+特别的，如果字典中有一个 `...` 键，那么该参数可以传入任何值:
+
+```python
+alc = Alconna("test", Args["foo", {"bar": 123, "baz": 456, ...: 789}])
+```
+
+这就类似于:
+
+```js
+switch (foo) {
+  case "bar": return 123;
+  case "baz": return 456;
+  default: return 789;
+}
+```
+
+## Callable args
+
+在 `value` 参数中传入一个可调用对象, 可以将该参数标记为可调用参数:
+
+```python
+from arclet.alconna import Args, Alconna
+
+def func(value) -> int | None:
+    if isinstance(value, int):
+        return value * 2
+    elif isinstance(value, str):
+        if value == "abc":
+            return 123
+        elif value == "def":
+            return 456
+
+alc = Alconna("test", Args["foo", func])
+```
+
+这会使得该参数只能传入可以通过 `func` 处理的值, 例如:
+
+<App>
+  <DataLine type="input" prompt=">>>">test 123</DataLine>
+  <DataLine>&#123;'foo': 246&#125;</DataLine>
+  <DataLine type="input" prompt=">>>">test abc</DataLine>
+  <DataLine>&#123;'foo': 123&#125;</DataLine>
+  <DataLine type="input" prompt=">>>">test def</DataLine>
+  <DataLine>&#123;'foo': 456&#125;</DataLine>
+  <DataLine type="input" prompt=">>>">test ghi</DataLine>
+  <DataLine>
+    <>Traceback (most recent call last):<br/></>
+    <>  File "&lt;stdin&gt;", line 1, in &lt;module&gt;</><br/>
+    arclet.alconna.exceptions.ParamsUnmatched: 参数 ghi 不正确
+  </DataLine>
+</App>
