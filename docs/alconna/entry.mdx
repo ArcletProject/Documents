@@ -1,11 +1,18 @@
 ---
-id: entry
-title: 入门
+sidebar_position: 3
+description: 入门
+
+options:
+  menu:
+    weight: 30
+    category: Alconna
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import {App, DataLine} from "@site/src/components/termy";
+
+# 入门
 
 ## 实例结构
 
@@ -74,7 +81,7 @@ COMMAND : [HEADERS] COMMAND [MAIN_SEP ARGS] *(MAIN_SEP OPTION/SUBCOMMAND);
 
 `Alconna` 目前提供了5种构造方式, 其中后面四种方法需要安装 `arclet-alconna-tools` 包.
 
-- [typical](./construct.mdx)
+- [typical 标准方式](./construct.mdx#标准方式)
 - [koishi-like](./construct.mdx)
 - [format-like](./construct.mdx)
 - [click-like](./construct.mdx)
@@ -196,9 +203,45 @@ if __name__ == "__main__":
 
 现在你可以尝试如下输入:
 
+
+```typescript jsx live noInline title="实时演示"
+let cmd = new Command("/pip", null, new Args(), [
+    new Subcommand(
+        "install",
+        Args.push("pak", String),
+        [new Option("--upgrade"),  new Option("-i|--index-url", Args.push("iu", String))]
+    ),
+    new Subcommand("list", null, [new Option("--outdated")]),
+    new Subcommand("show", Args.push("pak", String)),
+    new Subcommand("help", Args.push("command", String)),
+    new Option("--retries", Args.push("retries", Number)),
+    new Option("-t|--timeout", Args.push("sec", Number)),
+    new Option("--exists-action", Args.push("action", String)),
+    new Option("--trusted-host", Args.push("host_name", String))
+])
+
+const Show = (props) => {
+  let res = cmd.parse(props.input);
+  let matches = [];
+  res.allArgs.forEach((v, k) => {
+    matches.push(`${k}=${v}`, <br/>)
+  })
+  return (
+  <>
+    <h2>匹配结果: {String(res.matched)}</h2>
+    <p>{matches}</p>
+  </>
+  )
+};
+
+render(<Show input={
+"/pip install numpy --upgrade -i http://pypi.douban.com/simple --trusted-host pypi.douban.com"
+}/>);
+```
+
 <App>
-  <DataLine type="input" prompt="$">python test_alconna.py "/pip install cesloi --upgrade -i http://pypi.douban.com/simple --trusted-host pypi.douban.com"</DataLine>
-  <DataLine> &#123;'host_name': 'pypi.douban.com', 'pak': 'cesloi', 'url': 'http://pypi.douban.com/simple'&#125; </DataLine>
+  <DataLine type="input" prompt="$">python test_alconna.py "/pip install numpy --upgrade -i http://pypi.douban.com/simple --trusted-host pypi.douban.com"</DataLine>
+  <DataLine> &#123;'host_name': 'pypi.douban.com', 'pak': 'numpy', 'url': 'http://pypi.douban.com/simple'&#125; </DataLine>
 </App>
 
 

@@ -1,9 +1,10 @@
 ---
-id: intro
-title: Arclet 概览
+sidebar_position: 0
+id: index
+slug: /
 ---
 
-## Arclet
+# 概览
 
 `Arclet Project` 是包括 Alconna, Edovse, Letoderea 在内的一系列与机器人开发框架相关、
 但不局限于机器人开发的框架集合体

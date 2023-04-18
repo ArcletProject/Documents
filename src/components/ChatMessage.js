@@ -1,7 +1,6 @@
 import React from "react";
 import { AiOutlineUser } from "react-icons/ai";
 import styles from "./ChatMessage.module.css";
-import Observer from "@researchgate/react-intersection-observer";
 
 const avatarMap = {
   Abylanc: require("@site/static/img/avatars/Cesloi.jpg").default,
@@ -73,17 +72,15 @@ class ChatMessage extends React.Component {
 
   render() {
     return (
-      <Observer onChange={this.onChange}>
-        <div
-          className={
-            this.state.shown ? styles.chatMessageShown : styles.chatMessage
-          }
-        >
-          {this.avatar}
-          <div className={styles.nickname}>{this.name}</div>
-          <div className={styles.messageBox}>{this.msg}</div>
-        </div>
-      </Observer>
+      <div
+        className={
+          this.state.shown ? styles.chatMessageShown : styles.chatMessage
+        }
+      >
+        {this.avatar}
+        <div className={styles.nickname}>{this.name}</div>
+        <div className={styles.messageBox}>{this.msg}</div>
+      </div>
     );
   }
 }

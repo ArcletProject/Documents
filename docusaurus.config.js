@@ -1,7 +1,7 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require('prism-react-renderer/themes/okaidia');
+const lightCodeTheme = require('prism-react-renderer/themes/dracula');
 const darkCodeTheme = require('prism-react-renderer/themes/vsDark');
 
 /** @type {import('@docusaurus/types').Config} */
@@ -52,8 +52,21 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      docs:{
+        sidebar: {
+          hideable: true,
+          autoCollapseCategories: true,
+        }
+      },
+      logo: {
+        alt: "",
+        src: "img/arclet.png",
+        href: "/",
+        target: "_self",
+      },
       navbar: {
         title: 'ArcletProject',
+        hideOnScroll: true,
         logo: {
           alt: 'Arclet',
           src: 'img/logo.svg',
@@ -61,7 +74,7 @@ const config = {
         items: [
           {
             activeBasePath: 'docs',
-            to: 'docs/intro',
+            to: '/docs',
             position: 'left',
             label: 'Arclet介绍',
           },
@@ -71,6 +84,7 @@ const config = {
             position: 'left'
           },
           {
+            icon: ["fab", "github"],
             href: 'https://github.com/ArcletProject',
             label: 'GitHub',
             position: 'right',
@@ -130,6 +144,12 @@ const config = {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
         additionalLanguages: ['powershell', 'abnf'],
+      },
+      algolia: {
+        appId: "S21P7Z37YV",
+        apiKey: "61e981aef76ed4888701a0cca12f0bb2",
+        indexName: "arclet",
+        contextualSearch: true,
       },
     }),
 };

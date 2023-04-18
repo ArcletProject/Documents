@@ -1,7 +1,14 @@
 ---
-id: before-start
-title: 开始之前
+sidebar_position: 2
+description: 导语
+
+options:
+  menu:
+    weight: 20
+    category: Alconna
 ---
+
+# 开始之前
 
 ## 命令结构
 
@@ -14,31 +21,88 @@ sdist upload -r pypi
 
 a:
 ```json
+[
+  {
+    "slot": "command",
+    "value": "sdist"
+  },
+  {
+    "slot": "upload",
+    "value": "upload"
+  },
+  {
+    "slot": "repository",
+    "value": "-r"
+  },
+  {
+    "slot": "repository_name",
+    "value": "pypi"
+  }
+]
+```
+
+b:
+```json
 {
   "name": "sdist",
-  "parts" : [
+  "items":[
     {
       "slot": "upload",
-      "type": "single-str-match",
       "value": "upload",
-      "space_policy": "force",
-      "optional": false
-    },
-    {
-      "slot": "repository",
-      "type": "single-str-match",
-      "value": "-r",
-      "space_policy": "force",
-      "optional": true
-    },
-    {
-      "slot": "repository_name",
-      "type": "any-str-match",
-      "value": "pypi",
-      "optional": true
+      "items": [
+        {
+          "slot": "repository",
+          "value": "-r",
+          "items": [
+            {
+              "slot": "repository_name",
+              "value": "pypi"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
+
+
+```
+
+其对应的匹配结构为
+
+a:
+```json
+
+[
+  {
+    "slot": "command",
+    "type": "single-str-match",
+    "value": "sdist",
+    "space_policy": "force",
+    "optional": false
+  },
+  {
+    "slot": "upload",
+    "type": "single-str-match",
+    "value": "upload",
+    "space_policy": "force",
+    "optional": false
+  },
+  {
+    "slot": "repository",
+    "type": "single-str-match",
+    "value": "-r",
+    "space_policy": "force",
+    "optional": true
+  },
+  {
+    "slot": "repository_name",
+    "type": "any-str-match",
+    "value": "pypi",
+    "optional": true
+  }
+]
+
 ```
 b:
 ```json
@@ -133,11 +197,13 @@ Command(headers=[""], main=["name", "args/subcommand/subcommand_list", "separate
 ```json
 {
   "header": "/",
-  "main": {
-    "name": "ping",
-    "separate": " ",
-    "args": "127.0.0.1"
-  }
+  "name": "ping",
+  "items": [
+    {
+      "slot": "ip",
+      "value": "127.0.0.1"
+    }
+  ]
 }
 ```
 
@@ -146,16 +212,14 @@ Command(headers=[""], main=["name", "args/subcommand/subcommand_list", "separate
 ```json
 {
   "headers": ["/"],
-  "main": {
-    "name": "ping",
-    "separate": " ",
-    "args": [
-      {
-        "name": "ip",
-        "type": "any-str-match"
-      }
-    ]
-  }
+  "name": "ping",
+  "separate": " ",
+  "args": [
+    {
+      "name": "ip",
+      "type": "any-str-match"
+    }
+  ]
 }
 ```
 
