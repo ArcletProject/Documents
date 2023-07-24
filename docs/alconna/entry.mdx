@@ -27,17 +27,18 @@ import {App, DataLine} from "@site/src/components/termy";
 ```txt title="该结构仅为示例，实际结构会有所不同"
 -- Commands --
 Alconna
-├── command: String
+├── command: Any
 ├── main_args: Args
-├── headers: List[Any] | List[[Any, String]]
+├── prefixes: List[Any] | List[[Any, String]]
 ├── options: List[Option | Subcommand]
 ├── separator: String
+├── meta: CommandMeta
 └── ...
 
 -- Args --
 Arg
 ├── name: String
-├── value: BasePattern | Any
+├── value: BasePattern
 ├── default: Any
 ├── separator: String
 └── flags: List[String]
@@ -54,12 +55,15 @@ Option
 ├── name: String
 ├── args: Args
 ├── aliases: List[String]
+├── action: Action
+├── default: Any
 └── separator: String
 
 Subcommand
 ├── name: String
 ├── args: Args
 ├── options: List[Option | Subcommand]
+├── default: Any
 └── separator: String
 ```
 
@@ -71,10 +75,10 @@ ARG_SEP : String;
 ARGS : ARG *(ARG_SEP ARG);
 OPTION : NAME/ALIAS [OPT_SEP ARGS];
 SUBCOMMAND : NAME [SUB_SEP ARGS] *(SUB_SEP OPTION/SUBCOMMAND);
-COMMAND : [HEADERS] COMMAND [MAIN_SEP ARGS] *(MAIN_SEP OPTION/SUBCOMMAND);
+COMMAND : [PREFIXES] COMMAND [MAIN_SEP ARGS] *(MAIN_SEP OPTION/SUBCOMMAND);
 ```
 
-当命令传入给 `Alconna` 解析时, 解析器将首先检查命令的头部(即 header + command),
+当命令传入给 `Alconna` 解析时, 解析器将首先检查命令的头部(即 prefix + command),
 再尝试将参数作为 `Option` 或 `Subcommand` 解析, 如果解析失败, 则将参数作为 main args 解析.
 
 ## 构造方法
@@ -100,17 +104,17 @@ alc = Alconna(...)
 
 </TabItem>
 <TabItem value="koishi" label="字符串方式">
-无法传入子命令与报错选项
+无法传入子命令
 
 ```python
 from arclet.alconna.tools import AlconnaString
 
-alc = AlconnaString(...)
+alc = AlconnaString(...).build()
 ```
 
 </TabItem>
 <TabItem value="format" label="格式化方式">
-无法写入帮助信息、命令头与选项别名
+无法写入帮助信息、命令头、子命令、选项别名
 
 ```python
 from arclet.alconna.tools import AlconnaFormat
@@ -120,7 +124,7 @@ alc = AlconnaFormat(...)
 
 </TabItem>
 <TabItem value="click" label="装饰器方式">
-无法传入子命令与报错选项
+无法传入子命令
 
 ```python
 from arclet.alconna.tools import AlconnaDecorate
@@ -174,7 +178,7 @@ General Options:
 根据上述的`Alconna结构`与前文的`命令结构`分析，我们可以得到这样的 `Alconna`:
 
 ```python title="/src/test_alconna.py"
-from arclet.alconna import Alconna, Option, Subcommand, Args
+from arclet.alconna import Alconna, Option, Subcommand, Args, OptionResult
 import sys
 
 pip = Alconna(
@@ -189,8 +193,8 @@ pip = Alconna(
     Subcommand("show", Args.pak[str]),
     Subcommand("help", Args.command[str]),
     Option("list"),
-    Option("--retries", Args.retries[int]),
-    Option("-t|--timeout", Args.sec[int]),
+    Option("--retries", Args.retries[int], default=OptionResult(args={"retries": 5})),
+    Option("-t|--timeout", Args.sec[int], default=OptionResult(args={"sec": 15})),
     Option("--exists-action", Args.action[str]),
     Option("--trusted-host", Args.host_name["url"])
 )

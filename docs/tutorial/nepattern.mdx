@@ -1,0 +1,96 @@
+---
+sidebar_position: 7
+description: NEPattern
+
+options:
+  menu:
+    weight: 70
+    category: 教程
+---
+
+# NEPattern
+
+[`NEPattern`](https://github.com/ArcletProject/NEPattern) 是 `Arclet Project` 下的负责类型转换、类型验证的模块, 也是 `Arclet` 的核心模块之一.
+
+`NEPattern` 旨在提供一种简单的方式, 使得开发者可以在不了解正则表达式的情况下, 也能够轻松地进行类型转换与类型验证.
+
+```python
+from nepattern import BasePattern
+
+pat = BasePattern.of(int)
+assert pat.validate(13).success
+assert not 13.0 >> pat
+```
+
+实时演示 (js)：
+
+```typescript jsx live noInline title="实时演示"
+let pat = Pattern.of(Number);
+
+const Show = (props) => {
+  let res = pat.exec(props.input);
+  return (
+  <>
+    <p>
+      匹配结果: {String(res.isSuccess())}
+    </p>
+    <p>
+      可能的错误信息: {String(res.error)}
+    </p>
+  </>
+  )
+};
+
+render(<Show input={123}/>);
+```
+
+
+## 安装
+for `Python`
+
+<Tabs>
+
+<TabItem value="pdm" label="pdm">
+
+```bash
+pdm add nepattern
+```
+
+</TabItem>
+<TabItem value="poetry" label="poetry">
+
+```bash
+poetry add nepattern
+```
+
+</TabItem>
+<TabItem value="pip" label="pip">
+
+```bash
+pip install --upgrade nepattern
+```
+
+</TabItem>
+
+</Tabs>
+
+
+for `Nodejs`
+```bash
+npm install @arcletjs/nepattern
+```
+
+## 特点
+
+- `NEPattern` 通过传入的`converter` 和 `validator` 等实现了高效的类型转化与类型验证功能
+- `NEPattern` 提供了多种预置的实例, 例如常见的 `INT` `FLOAT` `BOOL` 等
+- `NEPattern` 提供了良好的 `typing` 支持, 使得开发者可以传入大多数 `typing` 模块中的类型:
+```python
+from nepattern import type_parser
+from typing import List
+
+pat = type_parser(List[int])
+assert pat.validate([1, 2, 3]).success
+```
+- `NEPattern` 引入了 `Patterns` 与 `create_local_patterns` 等函数, 使得开发者可以自由的控制当前环境下的 `Pattern` 实例
+

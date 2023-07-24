@@ -95,15 +95,15 @@ const config = {
         style: 'dark',
         links: [
           {
-            title: '文档',
+            title: '教程',
             items: [
               {
                 label: 'Alconna',
-                to: '/docs/alconna/tutorial',
+                to: '/docs/tutorial/alconna',
               },
               {
                 label: 'NEPattern',
-                to: '/docs/nepattern/tutorial',
+                to: '/docs/tutorial/nepattern',
               },
             ],
           },

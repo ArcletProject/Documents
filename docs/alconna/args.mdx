@@ -1,11 +1,17 @@
 ---
-id: args
-title: 命令参数
+sidebar_position: 5
+description: 命令参数
+
+options:
+  menu:
+    weight: 50
+    category: Alconna
 ---
 
 import { App, DataLine } from "@site/src/components/termy";
 
-## Args
+
+# 命令参数
 
 `Args` 是一个特殊的类，用来包装`command`中的`args`, 即命令参数, 如
 
@@ -57,7 +63,7 @@ assert arg1 == arg2 == arg3
 ```python
 Arg(
     name: str,
-    value: TAValue | None = None,
+    value: TAValue[_T] | None = None,
     field: Field[_T] | _T | None = None,
     seps: str | Iterable[str] = " ",
     notice: str | None = None,
@@ -76,7 +82,7 @@ Arg(
 
 其中 `name` 保留了一些特殊形式, 用于便捷传入 `notice` 和 `flags`
 
-其形式为 `name;flags#notice`, `;` 之后为 `flags`, `#` 之后为 `notice`:
+其形式为 `name(;?)flags#notice`, `;` 或 名字之后为 `flags`, `#` 之后为 `notice`:
 
 ```python
 from arclet.alconna import Arg, ArgFlag
@@ -89,26 +95,59 @@ assert arg1 == arg2
 
 ### value
 
-`value` 可以是以下类型:
+`value` 表面上看需要传入一个 `type`，但实际上它需要的是一个 `nepattern.BasePattern` 的实例。
 
-- 存在于 `nepattern.all_patterns` 中的类型/字符串，用以替换为预制好的 **BasePattern**
-- 字符串，会转换为正则表达式
-- 列表，其中可存放 **BasePattern**、类型或者任意参数值，如字符串或者数字
-- `Union`、`Optional`、`Literal` 等会尝试转换为 `List[Type]`
-- `Dict[type1，type2]`、`List[type]`、`Set[type]`
-- 一般的类型，其会尝试比较传入参数的类型是否与其相关
-- [**AnyOne**、**AllParam**](./args#anyone-%E4%B8%8E-allparam).
-- 预制好的字典, 表示传入值依据该字典的键决定匹配结果
-- `Annotated[type, Callable[..., bool], ...]`，表示为某一类型添加校验器
-- `Callable[[P], T]`，表示会将传入的参数 P 经过该调用对象并将返回值 T 作为匹配结果
+```python
+from arclet.alconna import Args
+from nepattern import BasePattern
+
+# 表示 foo 参数需要匹配一个 @number 样式的字符串
+args = Args["foo", BasePattern("@\d+")]
+```
+
+
+示例中传入的 `str` 是因为 `str` 已经注册在了 `nepattern.global_patterns` 中，因此会替换为 `nepattern.global_patterns[str]`。
+
+默认支持的类型有：
+
+- `str`: 匹配任意字符串
+- `int`: 匹配整数
+- `float`: 匹配浮点数
+- `bool`: 匹配 `True` 与 `False` 以及他们小写形式
+- `list`: 匹配类似 `["foo","bar","baz"]` 的字符串
+- `dict`: 匹配类似 `{"foo":"bar","baz":"qux"}` 的字符串
+- `Any`: 匹配任意类型
+- `AnyString`: 匹配任意类型，转为 `str`
+- `Number`: 匹配 `int` 与 `float`，转为 `int`
+- `"hex"`: 匹配 `0x` 开头的十六进制字符串
+- `"url"`: 匹配网址
+- `"email"`: 匹配 `xxxx@xxx` 的字符串
+- `"ip"`: 匹配 `xxx.xxx.xxx.xxx` 的字符串
+- `"datetime"`: 传入一个 `datetime` 支持的格式字符串，或时间戳
+
+同时可以使用 typing 中的类型：
+
+- `Literal[X, Y]`: 匹配其中的任意一个值
+- `Union[X, Y]`: 匹配其中的任意一个类型
+- `Optional[xxx]`: 会自动将默认值设为 `None`，并在解析失败时使用默认值
+- `List[X]`: 匹配一个列表，其中的元素为 `X` 类型
+- `Dict[X, Y]`: 匹配一个字典，其中的 key 为 `X` 类型，value 为 `Y` 类型
+- `Annotated[X, Callable[..., bool], ...]`，表示为某一类型添加校验器
+- `Protocol`, `TypeVar`
 - ...
 
-内置的类型检查包括 `int`、`str`、`float`、`bool`、`'url'`、`'ip'`、`'email'`、`list`、`dict`、`tuple`、`set`、`Any` 、`bytes`、`hex`、`datetime` 等。
+几类特殊的传入标记：
 
-
-
-
-
+- `"foo"`: 匹配字符串 "foo" (若没有某个 `BasePattern` 与之关联)
+- `RawStr("foo")`: 匹配字符串 "foo" (不会被 `BasePattern` 替换)
+- `"foo|bar|baz"`: 匹配 "foo" 或 "bar" 或 "baz"
+- `"re:xxx"`: 匹配一个正则表达式 `xxx`，会返回 Match[0]
+- `"rep:xxx"`: 匹配一个正则表达式 `xxx`，会返回 `re.Match` 对象
+- `[foo, bar, Baz, ...]`: 匹配传入列表中的任意一个**BasePattern**、类型或者值
+- `Callable[[X], R]`: 匹配一个参数为 `X` 类型的值，并返回通过该函数调用得到的 `R` 类型的值
+- `{foo: bar, baz: qux}`: 匹配字典中的任意一个键, 并返回对应的值 (特殊的键 ... 会匹配任意的值)
+- [**AnyOne**、**AllParam**](./args#anyone-%E4%B8%8E-allparam).
+- ...
 
 ### Field
 
@@ -118,12 +157,11 @@ assert arg1 == arg2
 class Field(Generic[_T]):
     """标识参数单元字段"""
     default: _T = dc_field(default=None)
-    default_factory: Callable[[], _T] = dc_field(default=lambda: None)
     alias: str | None = dc_field(default=None)
     completion: Callable[[], str | list[str]] | None = dc_field(default=None)
 ```
 
-其中 `default` 与 `default_factory` 用于给出默认值
+其中 `default` 用于给出默认值
 
 :::tip
 
@@ -205,9 +243,10 @@ alc = Alconna("test", Args["foo", KeyWordVar(int)])
 
 这会使得该参数只能通过关键字参数的形式传入, 例如:
 
-
 <App>
   <DataLine type="input" prompt=">>>">test foo=123</DataLine>
+  <DataLine>&#123;'foo': 123&#125;</DataLine>
+  <DataLine type="input" prompt=">>>">test --foo 123</DataLine>
   <DataLine>&#123;'foo': 123&#125;</DataLine>
   <DataLine type="input" prompt=">>>">test 123</DataLine>
   <DataLine>
@@ -227,6 +266,45 @@ alc = Alconna("test", Args["foo", KeyWordVar(int, sep=":")])
 ```
 
 这样该参数就可以通过 `foo:123` 的形式传入了
+
+特别的是，当存在多个 `KeyWordVar` 时, 命令参数可以不依照构造顺序传入
+
+例如:
+
+```python
+from arclet.alconna import Args, Alconna, KeyWordVar
+
+alc = Alconna("test", Args["foo", KeyWordVar(int)]["bar", KeyWordVar(int)])
+```
+
+<App>
+  <DataLine type="input" prompt=">>>">test bar=123 foo=456</DataLine>
+  <DataLine>&#123;'bar': 123, 'foo': 456&#125;</DataLine>
+</App>
+
+:::caution
+实际解析时会先解析不需要关键字参数的参数, 然后再解析关键字参数
+
+例如:
+```python
+from arclet.alconna import Args, Alconna, KeyWordVar
+
+alc = Alconna("test", Args["foo", KeyWordVar(int)]["bar", int])
+alc.parse("test foo=123 456")  # 解析错误
+alc.parse("test 456 foo=123")  # 解析正确, {"bar": 456, "foo": 123}
+```
+
+使用 `KeyWordVar` 的参数和函数中 kwonly 的参数一样, 必须在不需要关键字参数的参数之后再传入
+
+例如:
+```python
+from arclet.alconna import Args, Alconna, KeyWordVar
+
+alc = Alconna("test", Args["foo", int]["bar", KeyWordVar(int)])
+alc.parse("test 123 bar=456")  # 解析正确, {"foo": 123, "bar": 456}
+alc.parse("test bar=456 123")  # 解析错误
+```
+:::
 
 ## Multi args
 
@@ -253,10 +331,9 @@ alc = Alconna("test", Args["foo", MultiVar(int)])
 - `+`: 传入1个或多个参数
 - 任意大于0的整数: 传入指定数量的参数
 
-
 :::tip
 
-`MultiVar` 与 `KeyWordVar` 可以结合使用, 例如:
+`MultiVar` 与 `KeyWordVar` 可以结合使用:
 
 ```python
 from arclet.alconna import Args, Alconna, MultiVar, KeyWordVar
@@ -264,12 +341,18 @@ from arclet.alconna import Args, Alconna, MultiVar, KeyWordVar
 alc = Alconna("test", Args["foo", MultiVar(KeyWordVar(int))])
 ```
 
-这会使得该参数可以接受多个关键字参数, 例如:
+这会使得该参数可以接受多个关键字参数:
 
 <App>
   <DataLine type="input" prompt=">>>">test bar=123 baz=456 qux=789</DataLine>
   <DataLine>&#123;'foo': &#123;'bar': 123, 'baz': 456, 'qux': 789 &#125;&#125;</DataLine>
 </App>
+:::
+
+:::caution
+参数解析的顺序是 `一般参数 -> 可变参数 -> 关键字参数 -> 可变关键字参数`
+
+可变关键字参数的 **键值分隔符** 与可变参数的 **分隔符** 不能相同
 :::
 
 ## Optional args

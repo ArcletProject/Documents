@@ -14,8 +14,28 @@ const FeatureList: FeatureItem[] = [
     //Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <p>
-        一个直观的、高性能、泛用的命令行参数解析器集成库
+        一个直观的、高性能、泛用的命令行参数解析器集成库<br/>
         A High-performance, Generality, Humane Command Line Arguments Parser Library
+      </p>
+    ),
+  },
+   {
+    title: 'Cithun',
+    //Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    description: (
+      <p>
+        类 linux 文件系统的权限系统<br/>
+        FS-Like Permission System
+      </p>
+    ),
+  },
+  {
+    title: 'Letoderea',
+    //Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    description: (
+      <p>
+        高性能、特性丰富的异步事件分发调度系统<br/>
+        A High-performance, Feature-rich Asynchronous Event System
       </p>
     ),
   },
@@ -24,7 +44,7 @@ const FeatureList: FeatureItem[] = [
     //Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <p>
-        一个高效的负责类型验证与类型转换的库
+        一个高效的负责类型验证与类型转换的库<br/>
         A library for pattern matching and type convert
       </p>
     ),
@@ -34,8 +54,18 @@ const FeatureList: FeatureItem[] = [
     //Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
       <p>
-        新一代简洁、抽象的Bot开发 SDK
+        新一代简洁、抽象的Bot开发 SDK<br/>
         A new abstract and simple bot framework
+      </p>
+    ),
+  },
+  {
+    title: 'Tarina',
+    //Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    description: (
+      <p>
+        组件与开发工具集合<br/>
+        A collection of components and development tools
       </p>
     ),
   },
