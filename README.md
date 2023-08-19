@@ -1,7 +1,7 @@
-> ve ýolantronýo loa, abýlanc·nomoris ti rofesith·arclet ém ateina, cesloi·arclet oinarus.
+> ve ýolantronýo loa, abýlanc·nomoris ti cesloi.railt su ateina, cithun·railt oinarus.
 
-> cesloi·arclet é luman eno o lom go avondina.
+> cithun·railt é luman eno o lom go avondina.
 
-> sié su alconna, reimelin, cesloi, letoderea, edoves, ti taralia.
+> sié su alconna, reimelin, cithun, letoderea, edoves, ti tarina.
 
-> letoderea no leioren ti taralia no vinýaen â siv
+> letoderea no leioren ti tarina no vinýaen â siv
