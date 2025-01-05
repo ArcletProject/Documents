@@ -4,22 +4,28 @@ layout: home
 
 hero:
   name: "ArcletProject"
-  text: "Document for ArcletProject"
-  tagline: My great project tagline
+  text: "Arclet Documentation"
+  tagline: ARCLET Project Official Documentation
+  image: /logo.svg
+
   actions:
     - theme: brand
-      text: Markdown Examples
+      text: 即刻开始
       link: /markdown-examples
     - theme: alt
-      text: API Examples
+      text: 了解更多
       link: /api-examples
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: Alconna
+    details: 一个直观的、高性能、泛用的命令行参数解析器集成库
+  - title: Cithun
+    details: 类 linux 文件系统的权限系统
+  - title: Letoderea
+    details: 高性能、特性丰富的异步事件分发调度系统
+  - title: Entari
+    details: 基于 Satori 跨平台协议的可扩展、高性能 IM 框架
+  - title: Tarina
+    details: 组件与开发工具集合
 ---
 
