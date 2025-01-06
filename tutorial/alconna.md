@@ -532,8 +532,8 @@ Alconna 的 i18n 支持使用了 [`Tarina.lang`](https://github.com/ArcletProjec
 
 ## 参考链接
 
-教程; [👉点击](../alconna)
-
 QQ 交流群: [🔗链接](https://jq.qq.com/?_wv=1027&k=PUPOnCSH)
 
-友链: [📚文档](https://graiax.cn/guide/message_parser/alconna.html)
+要了解如何使用 Alconna-Graia, 参考 [消息链匹配/Alconna](https://graiax.cn/guide/message_parser/alconna.html)
+
+要了解如何使用 nonebot-plugin-alconna, 参考 [nonebot-plugin-alconna 文档](https://nonebot.dev/docs/best-practice/alconna/)

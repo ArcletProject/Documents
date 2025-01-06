@@ -15,7 +15,10 @@ export default defineConfig({
     logo: '/logo.svg',
     nav: nav,
     sidebar: sidebar,
-
+    editLink: {
+      pattern: 'https://github.com/ArcletProject/Documents/edit/refactor/:path',
+      text: '在 GitHub 编辑此页'
+    },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/ArcletProject' }
     ],
@@ -28,7 +31,7 @@ export default defineConfig({
       text: '上次更新',
     },
     outline: {
-      label: '本页大纲',
+      label: '目录',
     },
     docFooter: {
       prev: '上一页',
