@@ -8,8 +8,20 @@ const tutorial = [
   {
     text: "教程",
     items: [
-      { text: "Alconna", link: "/tutorial/alconna.md" },
-      { text: "NEPattern", link: "/tutorial/nepattern.md" },
+      {
+        text: "Alconna",
+        items: [
+          { text: "1.8", link: "/tutorial/alconna/v1.md" },
+          { text: "2.0", link: "/tutorial/alconna/v2.md" }
+        ]
+      },
+      {
+        text: "NEPattern",
+        items: [
+          { text: "0.6", link: "/tutorial/nepattern/v0.md" },
+          { text: "1.0", link: "/tutorial/nepattern/v1.md" }
+        ]
+      },
     ]
   }
 ]
