@@ -10,6 +10,8 @@ export default defineConfig({
     ['link', { rel: 'icon', href: '/logo.png' }],
     ["meta", { "name": "theme-color", "content": "#2564c2" }]
   ],
+  srcDir: './',
+  srcExclude: ["./old/**", "./README.md"],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     logo: '/logo.svg',
