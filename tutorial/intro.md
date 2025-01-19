@@ -1,3 +1,7 @@
+---
+next: Alconna 1.8
+---
+
 # 概览
 
 `Arclet Project` 是包括 Alconna, Cithun, Letoderea, Entari, Tarina 在内的一系列与机器人开发框架相关、
