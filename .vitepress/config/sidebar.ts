@@ -24,6 +24,10 @@ const tutorial = [
           { text: "1.0", link: "/tutorial/nepattern/v1.md" }
         ]
       },
+      {
+        text: "Letoderea",
+        link: "/tutorial/letoderea.md"
+      },
     ]
   }
 ]
