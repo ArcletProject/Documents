@@ -28,6 +28,10 @@ const tutorial = [
         text: "Letoderea",
         link: "/tutorial/letoderea.md"
       },
+      {
+        text: "Entari",
+        link: "/tutorial/entari.md"
+      }
     ]
   }
 ]
