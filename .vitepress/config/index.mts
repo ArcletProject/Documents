@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress'
 import nav from './nav'
 import sidebar from './sidebar'
+import fence from "../markdown/fence";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -49,12 +50,15 @@ export default defineConfig({
   },
   markdown: {
     theme: {
-      light: 'min-light',
+      light: 'github-light',
       dark: 'one-dark-pro'
     },
     image: {
       lazyLoading: true
     },
     lineNumbers: true,
+    config: (md) => {
+      md.use(fence);
+    }
   }
 })

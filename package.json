@@ -1,11 +1,16 @@
 {
   "devDependencies": {
+    "@mdit-vue/shared": "^2.1.4",
+    "fake-qq-ui": "^0.3.4",
+    "sass": "^1.89.2",
+    "shiki": "^3.7.0",
     "vitepress": "^1.5.0",
     "vue": "^3.5.13"
   },
   "scripts": {
     "docs:dev": "vitepress dev",
     "docs:build": "vitepress build",
-    "docs:preview": "vitepress preview"
+    "docs:preview": "vitepress preview",
+    "docs:serve": "vitepress serve"
   }
 }

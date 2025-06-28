@@ -2,8 +2,15 @@
 import { h } from 'vue'
 import type { Theme } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
-import './style.css'
-import './custom_sidebar.css'
+import { FakeQQUI } from "fake-qq-ui";
+
+import QWindow from "../components/QWindow.vue";
+
+import '../styles/index.scss'
+import 'fake-qq-ui/styles/fake-qq-ui.css'
+import 'fake-qq-ui/styles/light.scss'
+import 'fake-qq-ui/styles/dark.scss'
+
 
 export default {
   extends: DefaultTheme,
@@ -13,6 +20,7 @@ export default {
     })
   },
   enhanceApp({ app, router, siteData }) {
-    // ...
+    app.component('QWindow', QWindow)
+    app.use(FakeQQUI)
   }
 } satisfies Theme

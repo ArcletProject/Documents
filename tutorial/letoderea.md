@@ -9,6 +9,23 @@ next: Entari
 
 `Letoderea` 旨在提供一种简单的方式，使得开发者可以在不了解事件系统的情况下，也能够轻松地进行事件的监听与处理。
 
+## 安装
+
+:::code-group
+```bash:no-line-numbers [pdm]
+pdm add "arclet-letoderea"
+```
+
+```bash:no-line-numbers [poetry]
+poetry add "arclet-letoderea"
+```
+
+```bash:no-line-numbers [pip]
+pip install "arclet-letoderea"
+```
+
+:::
+
 ## 基本用法
 
 ```python
@@ -173,7 +190,7 @@ class Resultable(Protocol[T]):
 
 `Letoderea` 的核心功能之一是依赖注入。通过在订阅者函数的参数中声明依赖，`Letoderea` 可以自动解析并提供这些依赖。
 
-```python
+```python {9}
 import arclet.letoderea as leto
 
 @leto.make_event
@@ -190,6 +207,18 @@ async def subscriber(foo: str, bar: int):
 await leto.publish(TestEvent(foo="Hello", bar=42))
 # Output: Received foo: Hello, bar: 42
 ```
+
+`Letoderea` 默认会提供两个依赖：
+- `event`：事件本身。注入方式要求参数名必须为 `event`，类型不限制。
+- `context: Contexts`：一个上下文对象，包含了所有的依赖和事件信息。注入方式要求参数类型必须为 `Contexts`，名称不限。
+
+:::tip
+
+`Contexts` 是一个字典-like 的对象，支持通过键访问依赖。
+
+对于每一个订阅者函数，其使用的 `Contexts` 实例都是独立的。
+
+::: 
 
 ### 依赖收集
 
@@ -212,13 +241,11 @@ class MyEvent:
 ```python
 import arclet.letoderea as leto
 
-integer = leto.define(int, name="integer")
-
 @leto.gather
 async def gather_integer(target: int, ctx: Contexts):
     ctx["value"] = target
 
-@leto.use(integer)
+@leto.on(int)
 async def integer_subscriber(value: int):
     print(f"Received integer: {value}")
 ```
@@ -298,6 +325,11 @@ async def my_subscriber(int_value: int, str_value: str):
     assert str_value == "42"
 ```
 ::: 
+
+无论是 `Provider` 还是 `ProviderFactory`，它们都应该
+- 在事件类内部定义
+- 声明事件类的类属性 `providers`, 例如 `providers = [FooProvider, Foo2Provider]`
+- 在 `on` 方法中通过 `providers` 参数传入。
 
 ### 子依赖
 
