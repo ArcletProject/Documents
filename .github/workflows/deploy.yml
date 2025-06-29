@@ -64,7 +64,7 @@ jobs:
         id: deployment
         uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          personal_token: ${{ secrets.PAGE_DEPLOY_TOKEN }} # 如果需要使用个人访问令牌
           publish_dir: .vitepress/dist
           external_repository: ArcletProject/ArcletProject.github.io
           publish_branch: main   # org.github.io 仓库的主分支
