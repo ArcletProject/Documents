@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   # 构建工作
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -49,17 +49,6 @@ jobs:
         run: npm ci # 或 pnpm install / yarn install / bun install
       - name: Build with VitePress
         run: npm run docs:build # 或 pnpm docs:build / yarn docs:build / bun run docs:build
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .vitepress/dist
-
-  # 部署工作
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    name: Deploy
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: peaceiris/actions-gh-pages@v4
@@ -68,4 +57,3 @@ jobs:
           publish_dir: .vitepress/dist
           external_repository: ArcletProject/ArcletProject.github.io
           publish_branch: main   # org.github.io 仓库的主分支
-          force_orphan: 'true'
