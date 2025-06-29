@@ -1,5 +1,6 @@
 ---
 prev: Letoderea
+next: Tarina
 ---
 
 # Entari

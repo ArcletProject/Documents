@@ -1,5 +1,5 @@
 ---
-prev: NEPattern 1.0
+prev: Cithun
 next: Entari
 ---
 

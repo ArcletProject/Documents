@@ -25,12 +25,20 @@ const tutorial = [
         ]
       },
       {
+        text: "Cithub",
+        link: "/tutorial/cithun.md"
+      },
+      {
         text: "Letoderea",
         link: "/tutorial/letoderea.md"
       },
       {
         text: "Entari",
         link: "/tutorial/entari.md"
+      },
+      {
+        text: "Tarina",
+        link: "/tutorial/tarina.md"
       }
     ]
   }

@@ -14,7 +14,7 @@ hero:
       link: /tutorial/intro.md
     - theme: alt
       text: 了解更多
-      link: /api-examples
+      link: /appendices/WIP.md
 
 features:
   - title: Alconna
