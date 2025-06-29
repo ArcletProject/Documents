@@ -27,5 +27,7 @@ features:
     details: 基于 Satori 跨平台协议的可扩展、高性能 IM 框架
   - title: Tarina
     details: 组件与开发工具集合
+  - title: NEPattern
+    details: 复杂正则与类型匹配工具
 ---
 
