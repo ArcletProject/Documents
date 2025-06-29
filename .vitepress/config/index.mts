@@ -50,7 +50,7 @@ export default defineConfig({
   },
   markdown: {
     theme: {
-      light: 'github-light',
+      light: 'min-light',
       dark: 'one-dark-pro'
     },
     image: {
