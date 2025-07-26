@@ -19,7 +19,7 @@ export default defineConfig({
     nav: nav,
     sidebar: sidebar,
     editLink: {
-      pattern: 'https://github.com/ArcletProject/Documents/edit/refactor/:path',
+      pattern: 'https://github.com/ArcletProject/Documents/edit/main/:path',
       text: '在 GitHub 编辑此页'
     },
     socialLinks: [
@@ -41,6 +41,9 @@ export default defineConfig({
       prev: '上一页',
       next: '下一页'
     },
+    search: {
+      provider: 'local',
+    },
     darkModeSwitchLabel: '黑暗模式',
     lightModeSwitchTitle: '切换到浅色模式',
     darkModeSwitchTitle: '切换到黑暗模式',
@@ -60,5 +63,8 @@ export default defineConfig({
     config: (md) => {
       md.use(fence);
     }
+  },
+  rewrites: {
+    '/docs/:path': '/:path',
   }
 })
