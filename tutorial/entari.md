@@ -99,6 +99,7 @@ plugins:
 - `prefix`: 指令前缀, 可留空
 
 另外还有未列出的基础配置项：
+- `log_ignores`: 日志忽略列表, 用于忽略特定路径的日志输出 (例如 `["aiosqlite.core"]`)
 - `skip_req_missing`: 是否在依赖缺失时跳过当前事件订阅者。参见 [监听事件](./letoderea.md#监听事件) 的相关内容。
 - `cmd_count`: 指令数量限制, 默认为 4096
 - `external_dirs`: 外部目录, 用于加载不在安装环境中的插件 (例如自定义插件), 可留空
@@ -961,6 +962,8 @@ pip install "arclet-entari[database]"
 在配置文件中，你可以通过 `::database` 字段来配置数据库连接:
 
 ```yaml:no-line-numbers title=entari.yml
+basic:
+  log_ignores: ["aiosqlite.core"]  # 忽略 aiosqlite 的 DEBUG 日志
 plugins:
   ::database:
     type: sqlite  # 数据库类型, 可选值有 sqlite, mysql, postgresql 等
