@@ -124,9 +124,9 @@ plugins:
 
 除了插件包名，plugins 还支持一些特殊的配置项:
 - `$prelude`: 预加载插件列表。它的值是一个列表，包含了有必要先于其他插件加载的插件名称。
-- `$$files`: 额外的插件配置文件搜索目录。通过该配置项，你可以将部分插件配置放在其他文件中，并通过该配置项指定这些文件的路径。
+- `$files`: 额外的插件配置文件搜索目录。通过该配置项，你可以将部分插件配置放在其他文件中，并通过该配置项指定这些文件的路径。
 
-:::tip
+:::tip 自定义前缀
 
 某些情况下，省略 `entari_plugin_` 前缀后的插件名称可能会与环境中的其他包名冲突。又或者，插件包名的前缀并不符合 `entari_plugin_` 的规范。
 此时可以通过配置 `$prefix` 来指定插件的前缀：
@@ -135,6 +135,23 @@ plugins:
   foo:
     $prefix: "entari_plugin_"
 ```
+
+:::
+
+
+:::tip 自定义排序
+
+有些插件需要在其他插件之前加载，但又不能作为预加载插件。这时可以通过配置 `$priority` 来指定插件的加载优先级:
+```yaml:no-line-numbers
+plugins:
+  foo:
+    $priority: 15
+  bar:
+    $priority: 10
+  # bar 会在 foo 之前加载
+```
+
+`$priority` 的值越小，插件的加载优先级越高。默认情况下，所有插件的优先级为 16。
 
 :::
 
@@ -162,24 +179,24 @@ plugins:
       host: 127.0.0.1
       port: 5140
   ```
-  此处的 `adapters` 可以参考 [satori.adapters](https://github.com/RF-Tar-Railt/satori-python/tree/main/src/satori/adapters)
+  此处的 `adapters` 可以参考 [适配器](https://github.com/ArcletProject/entari-plugin-server#%E5%AE%98%E6%96%B9%E9%80%82%E9%85%8D%E5%99%A8)
 :::
 
 
 配置文件生成后, 可以直接通过指令运行：
 ```shell:no-line-numbers
 $ entari run
-2025-06-28 23:18:35 INFO    | [core] Entari version 0.13.1
+2025-06-28 23:18:35 INFO    | [core] Entari version xxxxx
 ...
 ```
 
-或者编写入口文件:
+或者使用指令 `entari gen_main`来生成一个 `main.py` 文件再运行:
 
-```python title=main.py
-from arclet.entari import Entari
-
-app = Entari.load("entari.yml")
-app.run()
+```shell:no-line-numbers
+$ entari gen_main
+Main script generated at main.py
+$ python main.py
+2025-06-28 23:18:35 INFO    | [core] Entari version xxxxx
 ```
 
 倘若你没有配置文件, 也可以直接在代码中创建一个 `Entari` 实例并运行:
@@ -428,12 +445,10 @@ plugins:
 - `plugin_config(XXX)` 返回插件的配置模型 `XXX` 的实例。
 
 Entari 并未限制配置模型的类型，你可以使用任何注册了配置相关功能的配置模型类。
-Entari 内建了如下模型类：
-- `BasicConfModel`: 基于 `dataclass` 的基础配置模型
-- `::model.BaseModel`: 基于 `Pydantic` 的配置模型
-- `::model.Struct`: 基于 `msgspec` 的配置模型
-
-前者是 Entari 的默认配置模型，后者需要安装 `pydantic` 或 `msgspec`, 然后导入 `arclet.entari.builtins.model` 插件才能使用。
+Entari 内建了如下模型类的支持：
+- `BasicConfModel`: 基于 `dataclass` 的 Entari 默认配置模型，支持简易的类型校验。
+- `BaseModel`: 基于 `Pydantic` 的配置模型，从 `arclet.entari.config.models.pyd` 导入。
+- `Struct`: 基于 `msgspec` 的配置模型，从 `arclet.entari.config.models.msgspec_` 导入。
 
 以 `BasicConfModel` 为例，我们可以这样定义一个配置模型:
 
@@ -485,11 +500,9 @@ MyPluginConfig(foo="Hello, World!", bar=100)
 
 :::code-group
 ```python title=my_plugin.py [listen/dispatch]
-from arclet.entari import Ready, Plugin
+from arclet.entari import plugin
 
-plug = Plugin.current()
-
-@plug.listen(Ready)
+@plugin.listen(Ready)
 async def on_ready():
     print("Entari is ready!")
 ```
@@ -539,7 +552,7 @@ collect_disposes(lambda: global_list.remove("my_plugin"))
 ```python title=my_plugin.py
 from arclet.entari import keeping
 
-my_data = keeping("my_data", {"key": "value"}, lambda x: x.clear())
+my_data = keeping("my_data", {"key": "value"}, dispose=lambda x: x.clear())
 ```
 
 这样，即使 `my_plugin` 多次加载和卸载，`my_data` 内的数据也会保持不变。
@@ -810,6 +823,52 @@ async def on_message(session: Session):
 ```
 :::
 
+## 数据存储
+
+部分情况下，我们需要在插件中存储一些数据，例如用户的个人信息、缓存、临时文件等。Entari 提供了一个简单的数据存储插件，用于获取指定的数据存储路径。
+
+你可以在配置文件中启用 `.localdata` 插件:
+
+```yaml:no-line-numbers title=entari.yml
+plugins:
+  .localdata:
+    use_global: false  # 是否使用全局数据存储路径
+```
+
+localdata 的配置项包括:
+- `use_global`: 是否使用全局数据存储路径。默认为 `False`，表示使用运行实例的本地数据存储路径。
+- `app_name`: 应用名称。默认为 `entari`。
+- `base_dir`: 数据存储路径的基目录。默认为空，即使用 `app_name`。
+
+使用时，直接导入 `local_data`, 并使用其上的方法即可：
+
+```python title=my_plugin.py
+from arclet.entari import local_data, command
+
+@command.command("save <key> <value>")
+async def save_data(key: str, value: str):
+    # 保存数据到本地存储
+    file = local_data.get_data_file("my_plugin", key)
+    with open(file, "w") as f:
+        f.write(value)
+```
+
+`localdata` 提供了以下方法:
+- `get_cache_dir`: 创建/获取缓存目录
+  - 本地路径为 `./.<app_name>/cache` 或 `./<base_dir>/cache`
+  - 全局路径如下:
+    - macOS: `~/Library/Caches/<app_name>`
+    - Linux: `~/.cache/<app_name>`
+    - Windows: `C:\Users\<username>\AppData\Local\<app_name>\Cache`
+- `get_data_dir`: 创建/获取数据目录
+  - 本地路径为 `./.<app_name>/data` 或 `./<base_dir>/data`
+  - 全局路径如下:
+    - macOS: `~/Library/Application Support/<app_name>`
+    - Linux: `~/.local/share/<app_name>`
+    - Windows: `C:\Users\<username>\AppData\Local\<app_name>`
+- `get_temp_dir`: 创建/获取临时目录; 一律为 `$TEMP/<app_name>_xxxx`
+- `get_xxxx_file`: 获取指定目录下的文件
+
 ## 热重载
 
 Entari 支持热重载插件和配置文件。若需要启用该功能，你需要在配置文件中启用 `::auto_reload` 插件:
@@ -872,3 +931,212 @@ async def on_message(session: Session):
   <q-text name="Entari">pongpongpong!</q-text>
 </q-window>
 :::
+
+## 数据库
+
+:::warning
+
+该功能需要你安装额外依赖 (**如果你是完整安装则忽略此提示**):
+::: code-group
+```bash:no-line-numbers [pdm]
+pdm add "arclet-entari[database]"
+```
+
+```bash:no-line-numbers [poetry]
+poetry add "arclet-entari[database]"
+```
+
+```bash:no-line-numbers [pip]
+pip install "arclet-entari[database]"
+```
+:::
+
+`Entari` 内置了一个数据库插件，允许你在插件中使用数据库进行数据存储和查询。
+
+由于基于 [`SQLAlchemy`](https://www.sqlalchemy.org/)，大部分情况下，你可以直接使用 SQLAlchemy 的 API 来操作数据库。
+
+本插件只提供了 ORM 功能，没有数据库后端，也没有直接连接数据库后端的能力。 所以你需要另行安装数据库驱动和数据库后端，并且配置数据库连接信息。
+
+### 配置连接
+在配置文件中，你可以通过 `::database` 字段来配置数据库连接:
+
+```yaml:no-line-numbers title=entari.yml
+plugins:
+  ::database:
+    type: sqlite  # 数据库类型, 可选值有 sqlite, mysql, postgresql 等
+    name: my_database.db  # 数据库名称或文件目录
+    driver: aiosqlite  # 数据库驱动, 根据数据库类型选择
+    ...
+```
+
+其余的配置项包括:
+- `host`: 数据库主机地址 (仅在使用 MySQL/PostgreSQL 等远程数据库时需要)
+- `port`: 数据库端口号 (仅在使用 MySQL/PostgreSQL 等远程数据库时需要)
+- `username`: 数据库用户名 (仅在使用 MySQL/PostgreSQL 等远程数据库时需要)
+- `password`: 数据库密码 (仅在使用 MySQL/PostgreSQL 等远程数据库时需要)
+- `query`: 数据库连接参数 (仅在使用 MySQL/PostgreSQL 等远程数据库时需要)
+- `options`: SQLAlchemy 的其他选项。参见 [Engine Creation API](https://docs.sqlalchemy.org/en/21/core/engines.html#engine-creation-api)
+
+若不传入配置项，则默认使用 SQLite 数据库，并将数据库文件存储在当前目录下。
+
+### 定义模型
+
+`database` 插件使用 SQLAlchemy 的 ORM 功能来定义模型。你可以通过继承 `database.Base` 类来定义你的模型类。
+
+```python title=my_plugin.py
+from arclet.entari.builtins.database import Base, Mapped, mapped_column
+
+class Weather(Base):
+    __tablename__ = "weather"
+    
+    location: Mapped[str] = mapped_column(primary_key=True)
+    weather: Mapped[str]
+```
+
+我们可以用以下代码检查模型生成的数据库模式是否正确：
+
+```python
+from sqlalchemy.schema import CreateTable
+
+print(CreateTable(Weather.__table__))
+```
+
+```sql
+CREATE TABLE weather (
+    location VARCHAR NOT NULL,
+    weather VARCHAR NOT NULL,
+    CONSTRAINT pk_weather PRIMARY KEY (location)
+)
+```
+
+
+### 使用会话
+
+`database` 插件通过 `SqlalchemyService` 提供数据库会话服务。
+
+你可以通过依赖注入的方式获取 `SqlalchemyService` 实例，并使用它来获取数据库会话。
+
+:::code-group
+
+```python title=my_plugin.py [ORM]
+from arclet.entari import Session, command
+from arclet.entari.builtins.database import SqlalchemyService
+from sqlalchemy import select
+
+@command.on("get_weather {location}")
+async def on_message(location: str, session: Session, db: SqlalchemyService):
+    async with db.get_session() as db_session:
+        # 在这里使用 SQLAlchemy 的会话进行数据库操作
+        result = await db_session.scalars(select(Weather).where(Weather.location == location))
+        data = result.all()
+        await session.send(f"Data: {data}")
+```
+
+
+```python title=my_plugin.py [SQL语句]
+from arclet.entari import Session, command
+from arclet.entari.builtins.database import SqlalchemyService
+from sqlalchemy import text
+
+@command.on("get_weather {location}")
+async def on_message(location: str, session: Session, db: SqlalchemyService):
+    async with db.get_session() as db_session:
+        # 在这里使用 SQLAlchemy 的会话进行数据库操作
+        result = await db_session.execute(text("SELECT * FROM weather WHERE location=:location"), {"location": location})
+        data = result.fetchall()
+        await session.send(f"Data: {data}")
+```
+
+:::
+
+关于如何使用 SQLAlchemy 的 ORM 功能，你可以参考 [SQLAlchemy 官方文档](https://docs.sqlalchemy.org/en/21/orm/quickstart.html)。
+
+
+## 钩子函数
+
+`Entari` 并没有提供钩子函数的概念，但是你可以通过监听特定的事件来实现类似的功能：
+- `PluginLoadedSuccess`: 当插件加载成功时触发。
+  - 可注入内容: `name: str` **(建议直接注入事件本体)**
+- `PluginLoadedFailed`: 当插件加载失败时触发。
+  - 可注入内容: `name: str`, `error: Exception | None` **(建议直接注入事件本体)**
+- `PluginUnloaded`: 当插件卸载时触发。
+  - 可注入内容: `name: str` **(建议直接注入事件本体)**
+- `ConfigReload`: 当配置文件重新加载时触发。**若监听器返回 `True`, 则不会继续执行后续的配置重载以及插件重载**。
+  - 可注入内容: `scope: "basic" | "plugin"`, `key: str`, `value: Any, old: Any | None` **(建议直接注入事件本体)**
+- `CommandReceive`: 指令在解析前触发。监听器可返回修改后的指令内容(类型要求为 `MessageChain`)。
+  - 可注入内容: `session: Session`, `command: Alconna`, `content: MessageChain`, `reply: Reply | None` 
+- `CommandParse`: 指令解析后触发。监听器可返回修改后的指令解析结果，**或者返回 `False` 来阻止指令的执行**。
+  - 可注入内容: `session: Session`, `command: Alconna`, `result: Arparma` 
+- `CommandOutput`: 指令的输出信息发送前触发。监听器可返回修改后的输出信息(类型要求为 `str | MessageChain`)，**或者返回 `True/False` 来允许/阻止输出**。
+  - 可注入内容: `session: Session`, `command: Alconna`, `type: "help" | "shortcut" | "completion" | "error"`, `content: str` 
+- `SendRequest`: 发送消息前触发。监听器可返回修改后的消息内容(类型要求为 `MessageChain`)，**或者返回 `True/False` 来允许/阻止发送**。
+  - 可注入内容: `account: Account`, `channel: str`, `message: MessageChain`, `session: Session | None` 
+- `SendResponse`: 发送消息后触发，仅可作为消息记录使用。
+  - 可注入内容: `account: Account`, `channel: str`, `message: MessageChain`, `result: list[MessageReceipt]`, `session: Session | None` 
+
+:::details SendRequest 示例
+
+```python title=my_plugin.py
+from arclet.entari import MessageChain, Plugin
+
+plug = Plugin.current()
+
+@plug.use("::before_send")
+async def send_hook(message: MessageChain):
+    return message + "喵"
+
+```
+
+<q-window title="Entari Test">
+  <q-text name="Alice" self=true>/echo hello world</q-text>
+  <q-text name="Entari">hello world喵</q-text>
+</q-window>
+
+:::
+
+除此之外，你也可以通过 `Propagate` 配合 `PluginLoadedSuccess` 事件来为插件中的订阅者添加传播器。
+
+:::details 打印运行时间
+```python title=my_plugin.py
+import time
+from contextlib import asynccontextmanager
+from arclet.entari.event.plugin import PluginLoadedSuccess
+from arclet.entari.plugin import Plugin, get_plugin_subscribers
+
+
+plug = Plugin.current()
+
+
+@asynccontextmanager
+async def record_running_time():
+    start_time = time.time()
+    try:
+        yield
+    finally:
+        end_time = time.time()
+        print(f"Running time: {end_time - start_time:.2f} seconds")
+
+
+@plug.dispatch(PluginLoadedSuccess)
+async def hook(event: PluginLoadedSuccess):
+    if event.name == plug.id:
+        return
+    subscribers = get_plugin_subscribers(event.name)
+    for sub in subscribers:
+        # 副作用收集
+        plug.collect(sub.propagate(record_running_time, prepend=True, priority=0))
+```
+
+```shell :no-line-numbers
+2025-08-04 15:49:31 INFO    | [message] [测时测试] Alice(@alice) -> '/read'
+2025-08-04 15:49:31 INFO    | [message] [测时测试] <- 'example_plugin5.py reading'
+2025-08-04 15:49:34 INFO    | [message] [测时测试] <- 'example_plugin5.py readed'
+Running time: 3.03 seconds
+```
+
+:::warning
+
+此处更推荐使用 [Propagator](./letoderea.md#传播集成) 来实现功能，确保监控的订阅者是完整运行的。
+
+:::
+
