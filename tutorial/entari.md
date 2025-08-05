@@ -966,11 +966,13 @@ basic:
   log_ignores: ["aiosqlite.core"]  # 忽略 aiosqlite 的 DEBUG 日志
 plugins:
   ::database:
-    type: sqlite  # 数据库类型, 可选值有 sqlite, mysql, postgresql 等
+    type: sqlite  # 数据库类型, 可选值有 sqlite, mysql, postgresql, oracle 等
     name: my_database.db  # 数据库名称或文件目录
     driver: aiosqlite  # 数据库驱动, 根据数据库类型选择
     ...
 ```
+
+`type` 与 `driver` 的支持列表详见 [Dialects](https://docs.sqlalchemy.org/en/21/dialects/#included-dialects)。
 
 其余的配置项包括:
 - `host`: 数据库主机地址 (仅在使用 MySQL/PostgreSQL 等远程数据库时需要)
