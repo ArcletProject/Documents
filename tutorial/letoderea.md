@@ -16,8 +16,8 @@ next: Entari
 pdm add "arclet-letoderea"
 ```
 
-```bash:no-line-numbers [poetry]
-poetry add "arclet-letoderea"
+```bash:no-line-numbers [uv]
+uv add "arclet-letoderea"
 ```
 
 ```bash:no-line-numbers [pip]

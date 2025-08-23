@@ -1,5 +1,5 @@
 ---
-prev: Entari
+prev: 数据库插件
 ---
 
 # Tarina

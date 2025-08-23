@@ -1,6 +1,6 @@
 ---
 prev: Letoderea
-next: Tarina
+next: 服务器插件
 ---
 
 # Entari
@@ -24,8 +24,8 @@ next: Tarina
 pdm add "arclet-entari"
 ```
 
-```bash:no-line-numbers [poetry]
-poetry add "arclet-entari"
+```bash:no-line-numbers [uv]
+uv add "arclet-entari"
 ```
 
 ```bash:no-line-numbers [pip]
@@ -33,14 +33,14 @@ pip install "arclet-entari"
 ```
 :::
 
-完整安装 (包含YAML支持，文件监听等):
+完整安装 (包含命令行工具，YAML支持，文件监听等):
 :::code-group
 ```bash:no-line-numbers [pdm]
 pdm add "arclet-entari[full]"
 ```
 
-```bash:no-line-numbers [poetry]
-poetry add "arclet-entari[full]"
+```bash:no-line-numbers [uv]
+uv add "arclet-entari[full]"
 ```
 
 ```bash:no-line-numbers [pip]
@@ -50,9 +50,30 @@ pip install "arclet-entari[full]"
 
 ## 配置文件
 
+:::warning
+
+这里我们假设你是安装的完整版本的 Entari。
+
+如果你只安装了基础版本的 Entari，则需要安装 `entari-cli` 才能使用命令行工具。
+
+:::code-group
+```bash:no-line-numbers [pdm]
+pdm add entari-cli
+```
+
+```bash:no-line-numbers [uv]
+uv add entari-cli
+```
+
+```bash:no-line-numbers [pip]
+pip install entari-cli
+```
+
+:::
+
 每个 Entari 应用都有一个配置文件，它管理了应用及其插件的全部配置。Entari 支持多种配置文件格式, 包括 `JSON` 和 `YAML` 等, 也支持直接在代码中配置。
 
-安装后, 可以通过命令行工具 `entari` 来生成配置文件:
+安装后, 可以通过命令行工具 `entari-cli` 来生成配置文件:
 
 ```shell:no-line-numbers
 $ entari config new --help
@@ -62,7 +83,6 @@ $ entari config new --help
 
 选项:
   -d, --dev             是否生成开发用配置文件
-  -P, --plugins NAMES   指定增加哪些插件
 ```
 
 `config new` 指令会根据当前环境选择一个合适的文件格式。
@@ -78,7 +98,8 @@ basic:
       port: 5140
       path: "satori"
   ignore_self_message: true
-  log_level: INFO
+  log: 
+    level: INFO
   prefix: ["/"]
 plugins:
   .record_message: {}
@@ -95,11 +116,16 @@ plugins:
   - `port`: satori 服务器端口
   - `path`: satori 服务器路径
 - `ignore_self_message`: 是否忽略自己发送的消息事件
-- `log_level`: 日志等级
+- `log`: 日志配置
+  - `level`: 日志等级
 - `prefix`: 指令前缀, 可留空
 
 另外还有未列出的基础配置项：
-- `log_ignores`: 日志忽略列表, 用于忽略特定路径的日志输出 (例如 `["aiosqlite.core"]`)
+- `log.ignores`: 日志忽略列表, 用于忽略特定路径的日志输出 (例如 `["aiosqlite.core"]`)
+- `log.save`: 是否将日志保存到文件, 默认为 `false`; 可以传入特定配置项, 例如:
+  - `log.save.rotation`: 日志轮转时间, 默认为 `00:00`
+  - `log.save.compression`: 日志压缩格式, 可选 `zip`, `tar`, `gz`, `bz2`, `xz`
+  - `log.save.colorize`: 是否启用日志颜色, 默认为 `false`
 - `skip_req_missing`: 是否在依赖缺失时跳过当前事件订阅者。参见 [监听事件](./letoderea.md#监听事件) 的相关内容。
 - `cmd_count`: 指令数量限制, 默认为 4096
 - `external_dirs`: 外部目录, 用于加载不在安装环境中的插件 (例如自定义插件), 可留空
@@ -121,7 +147,8 @@ plugins:
 除了插件的包名外，插件的名称还可以有几种类型的前缀:
 - `::` 前缀表示内建插件。`::` 是对 `arclet.entari.builtins` 路径的省略。
 - `.` 前缀表示特殊的 Rootless 插件，即不基于文件，而是通过一个函数定义的插件。它们通常用于一些简单的功能。
-- `~` 前缀表示禁用插件。它的作用是将插件从配置中移除，而不是删除插件本身。
+- `~` 前缀表示禁用插件。它的作用是加载插件后立即禁用该插件。它通常用于调试或临时禁用某个插件。
+- `?` 前缀表示该插件不会立即加载，而是在其他地方手动加载。它通常用于保留某个插件的配置，但不希望它在启动时被加载。
 
 除了插件包名，plugins 还支持一些特殊的配置项:
 - `$prelude`: 预加载插件列表。它的值是一个列表，包含了有必要先于其他插件加载的插件名称。
@@ -180,7 +207,7 @@ plugins:
       host: 127.0.0.1
       port: 5140
   ```
-  此处的 `adapters` 可以参考 [适配器](https://github.com/ArcletProject/entari-plugin-server#%E5%AE%98%E6%96%B9%E9%80%82%E9%85%8D%E5%99%A8)
+  详细信息请阅读 [服务器插件](./server.md)。
 :::
 
 
@@ -774,8 +801,8 @@ urls = images1.map(lambda x: x.src)
 pdm add "arclet-entari[cron]"
 ```
 
-```bash:no-line-numbers [poetry]
-poetry add "arclet-entari[cron]"
+```bash:no-line-numbers [uv]
+uv add "arclet-entari[cron]"
 ```
 
 ```bash:no-line-numbers [pip]
@@ -932,130 +959,6 @@ async def on_message(session: Session):
   <q-text name="Entari">pongpongpong!</q-text>
 </q-window>
 :::
-
-## 数据库
-
-:::warning
-
-该功能需要你安装额外依赖 (**如果你是完整安装则忽略此提示**):
-::: code-group
-```bash:no-line-numbers [pdm]
-pdm add "arclet-entari[database]"
-```
-
-```bash:no-line-numbers [poetry]
-poetry add "arclet-entari[database]"
-```
-
-```bash:no-line-numbers [pip]
-pip install "arclet-entari[database]"
-```
-:::
-
-`Entari` 内置了一个数据库插件，允许你在插件中使用数据库进行数据存储和查询。
-
-由于基于 [`SQLAlchemy`](https://www.sqlalchemy.org/)，大部分情况下，你可以直接使用 SQLAlchemy 的 API 来操作数据库。
-
-本插件只提供了 ORM 功能，没有数据库后端，也没有直接连接数据库后端的能力。 所以你需要另行安装数据库驱动和数据库后端，并且配置数据库连接信息。
-
-### 配置连接
-在配置文件中，你可以通过 `::database` 字段来配置数据库连接:
-
-```yaml:no-line-numbers title=entari.yml
-basic:
-  log_ignores: ["aiosqlite.core"]  # 忽略 aiosqlite 的 DEBUG 日志
-plugins:
-  ::database:
-    type: sqlite  # 数据库类型, 可选值有 sqlite, mysql, postgresql, oracle 等
-    name: my_database.db  # 数据库名称或文件目录
-    driver: aiosqlite  # 数据库驱动, 根据数据库类型选择
-    ...
-```
-
-`type` 与 `driver` 的支持列表详见 [Dialects](https://docs.sqlalchemy.org/en/21/dialects/#included-dialects)。
-
-其余的配置项包括:
-- `host`: 数据库主机地址 (仅在使用 MySQL/PostgreSQL 等远程数据库时需要)
-- `port`: 数据库端口号 (仅在使用 MySQL/PostgreSQL 等远程数据库时需要)
-- `username`: 数据库用户名 (仅在使用 MySQL/PostgreSQL 等远程数据库时需要)
-- `password`: 数据库密码 (仅在使用 MySQL/PostgreSQL 等远程数据库时需要)
-- `query`: 数据库连接参数 (仅在使用 MySQL/PostgreSQL 等远程数据库时需要)
-- `options`: SQLAlchemy 的其他选项。参见 [Engine Creation API](https://docs.sqlalchemy.org/en/21/core/engines.html#engine-creation-api)
-
-若不传入配置项，则默认使用 SQLite 数据库，并将数据库文件存储在当前目录下。
-
-### 定义模型
-
-`database` 插件使用 SQLAlchemy 的 ORM 功能来定义模型。你可以通过继承 `database.Base` 类来定义你的模型类。
-
-```python title=my_plugin.py
-from arclet.entari.builtins.database import Base, Mapped, mapped_column
-
-class Weather(Base):
-    __tablename__ = "weather"
-    
-    location: Mapped[str] = mapped_column(primary_key=True)
-    weather: Mapped[str]
-```
-
-我们可以用以下代码检查模型生成的数据库模式是否正确：
-
-```python
-from sqlalchemy.schema import CreateTable
-
-print(CreateTable(Weather.__table__))
-```
-
-```sql
-CREATE TABLE weather (
-    location VARCHAR NOT NULL,
-    weather VARCHAR NOT NULL,
-    CONSTRAINT pk_weather PRIMARY KEY (location)
-)
-```
-
-
-### 使用会话
-
-`database` 插件通过 `SqlalchemyService` 提供数据库会话服务。
-
-你可以通过依赖注入的方式获取 `SqlalchemyService` 实例，并使用它来获取数据库会话。
-
-:::code-group
-
-```python title=my_plugin.py [ORM]
-from arclet.entari import Session, command
-from arclet.entari.builtins.database import SqlalchemyService
-from sqlalchemy import select
-
-@command.on("get_weather {location}")
-async def on_message(location: str, session: Session, db: SqlalchemyService):
-    async with db.get_session() as db_session:
-        # 在这里使用 SQLAlchemy 的会话进行数据库操作
-        result = await db_session.scalars(select(Weather).where(Weather.location == location))
-        data = result.all()
-        await session.send(f"Data: {data}")
-```
-
-
-```python title=my_plugin.py [SQL语句]
-from arclet.entari import Session, command
-from arclet.entari.builtins.database import SqlalchemyService
-from sqlalchemy import text
-
-@command.on("get_weather {location}")
-async def on_message(location: str, session: Session, db: SqlalchemyService):
-    async with db.get_session() as db_session:
-        # 在这里使用 SQLAlchemy 的会话进行数据库操作
-        result = await db_session.execute(text("SELECT * FROM weather WHERE location=:location"), {"location": location})
-        data = result.fetchall()
-        await session.send(f"Data: {data}")
-```
-
-:::
-
-关于如何使用 SQLAlchemy 的 ORM 功能，你可以参考 [SQLAlchemy 官方文档](https://docs.sqlalchemy.org/en/21/orm/quickstart.html)。
-
 
 ## 钩子函数
 

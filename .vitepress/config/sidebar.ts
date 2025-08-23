@@ -34,7 +34,11 @@ const tutorial = [
       },
       {
         text: "Entari",
-        link: "/tutorial/entari.md"
+        link: "/tutorial/entari/index.md",
+        items: [
+          { text: "服务器", link: "/tutorial/entari/server.md" },
+          { text: "数据库", link: "/tutorial/entari/database.md" },
+        ]
       },
       {
         text: "Tarina",
