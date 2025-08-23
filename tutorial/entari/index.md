@@ -126,7 +126,7 @@ plugins:
   - `log.save.rotation`: 日志轮转时间, 默认为 `00:00`
   - `log.save.compression`: 日志压缩格式, 可选 `zip`, `tar`, `gz`, `bz2`, `xz`
   - `log.save.colorize`: 是否启用日志颜色, 默认为 `false`
-- `skip_req_missing`: 是否在依赖缺失时跳过当前事件订阅者。参见 [监听事件](./letoderea.md#监听事件) 的相关内容。
+- `skip_req_missing`: 是否在依赖缺失时跳过当前事件订阅者。参见 [监听事件](../letoderea.md#监听事件) 的相关内容。
 - `cmd_count`: 指令数量限制, 默认为 4096
 - `external_dirs`: 外部目录, 用于加载不在安装环境中的插件 (例如自定义插件), 可留空
 
@@ -309,7 +309,7 @@ metadata(name="my_plugin")
 
 ### 事件系统
 
-`Entari` 的事件系统基于 [`Letoderea`](./letoderea.md). 也就是说你可以直接按照 [监听事件](./letoderea.md#监听事件) 的方式来注册事件监听器。
+`Entari` 的事件系统基于 [`Letoderea`](../letoderea.md). 也就是说你可以直接按照 [监听事件](../letoderea.md#监听事件) 的方式来注册事件监听器。
 
 :::code-group
 ```python title=my_plugin.py {4-7} [通常形式]
@@ -394,8 +394,8 @@ app.run()
 
 ### 指令系统
 
-一个机器人的绝大部分功能都是通过指令提供给用户的。Entari 的指令系统基于 [`Alconna`](./alconna/v1.md)，能够高效地处理大量消息的并发调用，同时还提供了快捷方式、调用前缀、速率限制、本地化等大量功能。
-它本质上属于消息事件响应器的一个[前置传播者](./letoderea.md#传播)，允许开发者通过定义指令来处理用户输入的命令。
+一个机器人的绝大部分功能都是通过指令提供给用户的。Entari 的指令系统基于 [`Alconna`](../alconna/v1.md)，能够高效地处理大量消息的并发调用，同时还提供了快捷方式、调用前缀、速率限制、本地化等大量功能。
+它本质上属于消息事件响应器的一个[前置传播者](../letoderea.md#传播)，允许开发者通过定义指令来处理用户输入的命令。
 
 指令的注册分为两种：
 - 通过 `command.on` 或 `command.command` 装饰器注册的指令
@@ -688,7 +688,7 @@ my_plugin/
 ### 过滤器
 
 默认情况下，一个会话事件、中间件或者指令都对所有的会话生效。但如果我们希望这些功能只对部分群聊或者用户生效，我们就需要用到 **过滤器**。
-过滤器的概念已经在 [`Letoderea`](./letoderea.md#过滤器) 中介绍过了。Entari 在此基础上提供了更为简洁的语法来使用过滤器。
+过滤器的概念已经在 [`Letoderea`](../letoderea.md#过滤器) 中介绍过了。Entari 在此基础上提供了更为简洁的语法来使用过滤器。
 
 Entari 的过滤器可以通过 `@filter_` 装饰器来使用:
 
@@ -1044,7 +1044,7 @@ Running time: 3.03 seconds
 
 :::warning
 
-此处更推荐使用 [Propagator](./letoderea.md#传播集成) 来实现功能，确保监控的订阅者是完整运行的。
+此处更推荐使用 [Propagator](../letoderea.md#传播集成) 来实现功能，确保监控的订阅者是完整运行的。
 
 :::
 
