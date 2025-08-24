@@ -77,12 +77,13 @@ pip install entari-cli
 
 ```shell:no-line-numbers
 $ entari config new --help
-用法: entari config new [-d] [-P NAMES]
+用法: entari config new [-d]
 
 新建一个 Entari 配置文件
 
 选项:
   -d, --dev             是否生成开发用配置文件
+  -h, --help            显示帮助信息
 ```
 
 `config new` 指令会根据当前环境选择一个合适的文件格式。
@@ -272,23 +273,30 @@ app.run()
 如同配置文件一样，插件也是 Entari 的重要组成部分。它们可以扩展 Entari 的功能，提供更多的事件响应器、命令、定时任务等。
 Entari 内置了一些插件，例如 `echo`、`inspect`、`help` 等。你可以在配置文件中启用它们，也可以通过代码加载它们。
 
-想要创建一个新的插件，你可以使用 `entari plugin new` 命令来生成一个插件模板:
+想要创建一个新的插件，你可以使用 `entari new` 命令来生成一个插件模板:
 
 ```shell:no-line-numbers
-$ entari plugin new --help
-用法: entari plugin new [-S] [-A] [-f]
+$ entari new --help
+用法: entari new [-S] [-A] [-f] [-D] [-O] [-p NUM] [-py PATH] [--pip-args PARAMS]
 
 新建一个 Entari 插件
+基础指令: entari new [NAME]
 
 选项:
   -S, --static          是否为静态插件
   -A, --application     是否为应用插件
   -f, --file            是否为单文件插件
+  -D, --disabled        是否插件初始禁用
+  -O, --optional        是否仅存储插件配置而不加载插件
+  -p, --priority NUM    插件加载优先级
+  -py, --python PATH    指定 Python 解释器路径
+  --pip-args PARAMS     传递给 pip 的额外参数
+  -h, --help            显示帮助信息
 ```
 
 其中对于 `--application` 选项，若你正在新建单个插件项目，则忽略这个选项；若你正在创建一个本地插件，则需要使用这个选项。
 
-假设我们通过 `entari plugin new my_plugin --application --file` 创建了一个名为 `my_plugin` 的插件，那么它的目录结构大致如下:
+假设我们通过 `entari new my_plugin --application --file` 创建了一个名为 `my_plugin` 的插件，那么它的目录结构大致如下:
 
 ```text:no-line-numbers
 project/
@@ -939,7 +947,7 @@ async def on_message(session: Session):
 ```
 
 ```shell:no-line-numbers
-2025-06-30 00:44:14 INFO    | [core] Entari version 0.13.1
+2025-06-30 00:44:14 INFO    | [core] Entari version 0.15.0
 2025-06-30 00:44:14 SUCCESS | [plugin] loaded plugin 'arclet.entari.builtins.auto_reload'
 2025-06-30 00:44:14 SUCCESS | [plugin] loaded plugin 'my_plugin'
 ...
