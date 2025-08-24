@@ -74,35 +74,37 @@ plugins:
 
 `database` 插件使用 SQLAlchemy 的 ORM 功能来定义模型。你可以通过继承 `database.Base` 类来定义你的模型类。
 
-假设我们要定义一个存储天气信息的模型：
+假设我们要定义一个存储调用插件记录的模型：
 
 ```python title=my_plugin.py
 from entari_plugin_database import Base, Mapped, mapped_column
 
-class Weather(Base):
-    location: Mapped[str] = mapped_column(primary_key=True)
-    weather: Mapped[str]
+class Record(Base):
+    plg_name: Mapped[str] = mapped_column(primary_key=True)
+    user_id: Mapped[int]
+    user_name: Mapped[str]
 ```
 
-其中，`primary_key=True` 意味着此列 (location) 是主键，即内容是唯一的且非空的。 每一个模型必须有至少一个主键。
+其中，`primary_key=True` 意味着此列 (plg_name) 是主键，即内容是唯一的且非空的。 每一个模型必须有至少一个主键。
 
 我们可以用以下代码检查模型生成的数据库模式是否正确：
 
 ```python
 from sqlalchemy.schema import CreateTable
 
-print(CreateTable(Weather.__table__))
+print(CreateTable(Record.__table__))
 ```
 
 ```sql
-CREATE TABLE my_plugin_weather (
-    location VARCHAR NOT NULL,
-    weather VARCHAR NOT NULL,
-    CONSTRAINT pk_my_plugin_weather PRIMARY KEY (location)
+CREATE TABLE my_plugin_record (
+    plg_name VARCHAR NOT NULL,
+    user_id INTEGER NOT NULL,
+    user_name VARCHAR NOT NULL,
+    CONSTRAINT pk_my_plugin_record PRIMARY KEY (plg_name)
 )
 ```
 
-可以注意到表名是 `my_plugin_weather` 而不是 `Weather` 或者 `weather`。 这是因为数据库插件会自动为模型生成一个表名，规则是：`<插件模块名>_<类名小写>`。
+可以注意到表名是 `my_plugin_record` 而不是 `Record` 或者 `record`。 这是因为数据库插件会自动为模型生成一个表名，规则是：`<插件模块名>_<类名小写>`。
 
 你也可以通过指定 `__tablename__` 属性，或传入关键字来自定义表名：
 
@@ -111,18 +113,20 @@ CREATE TABLE my_plugin_weather (
 ```python title=my_plugin.py [指定 __tablename__]
 from entari_plugin_database import Base, Mapped, mapped_column
 
-class Weather(Base):
-    __tablename__ = "custom_weather"  # 自定义表名
-    location: Mapped[str] = mapped_column(primary_key=True)
-    weather: Mapped[str]
+class Record(Base):
+    __tablename__ = "record"  # 自定义表名
+    plg_name: Mapped[str] = mapped_column(primary_key=True)
+    user_id: Mapped[int]
+    user_name: Mapped[str]
 ```
 
 ```python title=my_plugin.py [传入关键字]
 from entari_plugin_database import Base, Mapped, mapped_column
 
-class Weather(Base, tablename="custom_weather"):  # 自定义表名
-    location: Mapped[str] = mapped_column(primary_key=True)
-    weather: Mapped[str]
+class Record(Base, tablename="record"):  # 自定义表名
+    plg_name: Mapped[str] = mapped_column(primary_key=True)
+    user_id: Mapped[int]
+    user_name: Mapped[str]
 ```
 :::
 
@@ -139,11 +143,11 @@ class Weather(Base, tablename="custom_weather"):  # 自定义表名
 from arclet.entari import command
 from entari_plugin_database import SqlalchemyService, select
 
-@command.on("get_weather {location}")
-async def on_message(location: str, db: SqlalchemyService):
+@command.on("check {name}")
+async def on_message(name: str, db: SqlalchemyService):
     async with db.get_session() as db_session:
         # 在这里使用 SQLAlchemy 的会话进行数据库操作
-        result = await db_session.scalars(select(Weather).where(Weather.location == location))
+        result = await db_session.scalars(select(Record).where(Record.plg_name == name))
         data = result.all()
         return f"Data: {data}"
 ```
@@ -153,11 +157,11 @@ from arclet.entari import command
 from entari_plugin_database import SqlalchemyService
 from sqlalchemy import text
 
-@command.on("get_weather {location}")
-async def on_message(location: str, db: SqlalchemyService):
+@command.on("check {name}")
+async def on_message(name: str, db: SqlalchemyService):
     async with db.get_session() as db_session:
         # 在这里使用 SQLAlchemy 的会话进行数据库操作
-        result = await db_session.execute(text("SELECT * FROM weather WHERE location=:location"), {"location": location})
+        result = await db_session.execute(text("SELECT * FROM my_plugin_record WHERE plg_name=:name"), {"name": name})
         data = result.fetchall()
         return f"Data: {data}"
 ```
@@ -171,10 +175,10 @@ async def on_message(location: str, db: SqlalchemyService):
 from arclet.entari import command
 from entari_plugin_database import AsyncSession, select
 
-@command.on("get_weather {location}")
-async def on_message(location: str, db_session: AsyncSession):
+@command.on("check {name}")
+async def on_message(name: str, db_session: AsyncSession):
     # 在这里使用 SQLAlchemy 的会话进行数据库操作
-    result = await db_session.scalars(select(Weather).where(Weather.location == location))
+    result = await db_session.scalars(select(Record).where(Record.plg_name == name))
     data = result.all()
     return f"Data: {data}"
 ```
@@ -195,13 +199,13 @@ async def on_message(location: str, db_session: AsyncSession):
 from arclet.entari import Param, command
 from entari_plugin_database import SQLDepends, select
 
-@command.command("get_weather <location:str>")
+@command.command("check <name:str>")
 async def on_message(
-    weather: Weather = SQLDepends(
-        select(Weather).where(Weather.location == Param("location"))
+    record: Record = SQLDepends(
+        select(Record).where(Record.plg_name == Param("name"))
     ),
 ):
-    return f"Data: {weather}"
+    return f"Data: {record}"
 ```
 
 其中，SQLDepends 是一个特殊的依赖注入，它会根据类型标注和 SQL 语句提供数据，SQL 语句中也可以有子依赖。
@@ -214,13 +218,13 @@ from collections.abc import Sequence
 from arclet.entari import Param, command
 from entari_plugin_database import SQLDepends, select
 
-@command.command("get_weather <location:str>")
+@command.command("check <name:str>")
 async def on_message(
-    weathers: Sequence[Weather] = SQLDepends(
-        select(Weather).where(Weather.location == Param("location"))
+    records: Sequence[Record] = SQLDepends(
+        select(Record).where(Record.plg_name == Param("name"))
     ),
 ):
-    return "Data\n" + "\n".join(f"- {weather}" for weather in weathers)
+    return "Data\n" + "\n".join(f"- {rec}" for rec in records)
 ```
 
 :::tip
