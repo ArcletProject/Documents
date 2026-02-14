@@ -25,7 +25,7 @@ const tutorial = [
         ]
       },
       {
-        text: "Cithub",
+        text: "Cithun",
         link: "/tutorial/cithun.md"
       },
       {

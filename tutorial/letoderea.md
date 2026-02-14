@@ -65,6 +65,7 @@ def on(
     func: Callable[..., Any] | None = None,
     priority: int = 16,
     providers: TProviders | None = None,
+    propagators: list[Propagator] | None = None,
     once: bool = False,
     skip_req_missing: bool | None = None
 ):
@@ -75,6 +76,9 @@ def on(
 - `func`：订阅者函数，即回调函数。当传入 `None` 时，表示将用装饰器形式来注册订阅者。
 - `priority`：订阅者的优先级，数值越小，优先级越高。
 - `providers`：自定义的额外依赖注入提供者。通常而言，我们不需要传入这个参数。
+- `propagators`：订阅者的传播者列表。通常而言，我们不需要传入这个参数。
+   - 传播者是指在订阅者函数执行前或执行后，自动执行的同级订阅者函数。通过传播者，我们可以实现类似于中间件的功能。
+   - 传播者的定义和注册将在后续章节中介绍。
 - `once`：是否为临时订阅者。临时订阅者在事件被触发后会将自动注销。
 - `skip_req_missing`：是否在依赖缺失时跳过该订阅者。当传入 `None` 时，表示使用全局配置。
 :::
@@ -87,53 +91,51 @@ subscriber = leto.on(TestEvent, lambda value: print(f"Received {value}"))
 subscriber.dispose()  # 取消订阅
 ```
 
-[//]: # (### 发布者&#40;Publisher&#41;)
+### 发布者(Publisher)
 
-[//]: # ()
-[//]: # (在 `Letoderea` 中，事件会有一个对应的发布者。通常情况下，我们不需要手动创建发布者，而是通过 `define` 方法来为某一事件定义发布者。)
 
-[//]: # ()
-[//]: # (```python)
+在 `Letoderea` 中，事件会有一个对应的发布者。通常情况下，我们不需要手动创建发布者，而是通过 `define` 方法来为某一事件定义发布者。
 
-[//]: # (import arclet.letoderea as leto)
 
-[//]: # ()
-[//]: # (class TestEvent: ...)
+```python
+import arclet.letoderea as leto
 
-[//]: # ()
-[//]: # (leto.define&#40;TestEvent, name="test"&#41;)
+class TestEvent: ...
 
-[//]: # (```)
+test_pub = leto.define(TestEvent, name="test")
+```
 
-[//]: # ()
-[//]: # (:::tip)
 
-[//]: # ()
-[//]: # (`make_event` 会自动调用 `define` 方法，因此我们通常只需要用 `make_event` 来装饰目标事件类。)
+:::tip
 
-[//]: # ()
-[//]: # (:::)
 
-[//]: # ()
-[//]: # (每个发布者都有一个唯一的名称 &#40;name&#41;，用于标识该发布者。未指定名称时，发布者会使用事件的类名作为名称。)
+`make_event` 会自动调用 `define` 方法，因此我们通常只需要用 `make_event` 来装饰目标事件类。
 
-[//]: # ()
-[//]: # (### `use` 方法)
 
-[//]: # ()
-[//]: # (`use` 方法是 `on` 方法的一个变种，它使用 `Publisher.id` 来指定监听的事件。)
+:::
 
-[//]: # ()
-[//]: # (```python)
 
-[//]: # (pub = leto.define&#40;TestEvent, name="test"&#41;)
+每个发布者都有一个唯一的名称 (name)，用于标识该发布者。未指定名称时，发布者会使用事件的类名作为名称。
 
-[//]: # ()
-[//]: # (sub1 = leto.use&#40;pub, lambda value: print&#40;f"Received {value}"&#41;&#41;)
 
-[//]: # (sub2 = leto.use&#40;"test", lambda value: print&#40;f"Received {value}"&#41;&#41;)
+### `use` 方法
 
-[//]: # (```)
+
+`use` 方法是 `on` 方法的一个变种，它使用 `Publisher.id` 来指定监听的事件。
+
+
+```python
+pub = leto.define(TestEvent, name="test")
+sub1 = leto.use(pub, lambda value: print(f"Received {value}"))
+sub2 = leto.use("test", lambda value: print(f"Received {value}"))
+
+```
+
+> [!WARNING] 未实装的功能
+> `use` 方法传入字符串作为发布者标识时，允许使用 glob 模式进行匹配：
+> ```python
+> leto.use("test.*", lambda value: print(f"Received all test {value}"))
+> ```
 
 ### `on_global` 方法
 
@@ -150,25 +152,27 @@ def global_subscriber(event):
 
 ## 触发事件
 
-事件的触发通过 `publish` 或 `post` 方法来实现。
+事件的触发通过 `publish`, `post` 或 `waterfall` 方法来实现。
 
 ```python
 await leto.publish(TestEvent(42))
 result = await leto.post(TestEvent(42))
-
+async for res in leto.waterfall(TestEvent(42)):
+    ...
 ```
 
 - publish: 异步地并行触发该事件的所有订阅者。
 - post: 异步地触发该事件的所有订阅者，当有其中一个订阅者返回了 `None` 以外的值时，将这个值作为结果返回。
+- waterfall: 异步地串行触发该事件的所有订阅者。
 
 使用 `post` 时，若事件满足 `Resultable` 协议：
 
 ```python
 class Resultable(Protocol[T]):
-    __result_type__: type[T]
+    def check_result(self, value: Any) -> Result[T] | None: ...
 ```
 
-则 `post` 方法会返回的 `Result` 对象将拥有对应的类型提示。同时，订阅者的返回值也将用 `__result_type__` 来进行校验。
+则 `post` 方法会返回的 `Result` 对象将拥有对应的类型提示。同时，订阅者的返回值也将调用 `check_result` 来进行校验。
 
 
 :::tip
@@ -177,13 +181,13 @@ class Resultable(Protocol[T]):
 
 :::
 
-[//]: # (### 轮询事件)
+### 轮询事件
 
-[//]: # ()
-[//]: # (`Letoderea` 还提供了轮询事件的功能。该功能通过 `setup_fetch&#40;&#41;` 启用。)
 
-[//]: # ()
-[//]: # (启用后，`Letoderea` 会自动轮询所有发布者，并将获取到的事件分发给对应的订阅者。)
+`Letoderea` 还提供了轮询事件的功能。该功能通过 `setup_fetch()` 启用。
+
+
+启用后，`Letoderea` 会自动轮询所有发布者，并将获取到的事件分发给对应的订阅者。
 
 
 ## 依赖注入
@@ -209,16 +213,39 @@ await leto.publish(TestEvent(foo="Hello", bar=42))
 ```
 
 `Letoderea` 默认会提供两个依赖：
-- `event`：事件本身。注入方式要求参数名必须为 `event`，类型不限制。
-- `context: Contexts`：一个上下文对象，包含了所有的依赖和事件信息。注入方式要求参数类型必须为 `Contexts`，名称不限。
+- `event`：事件本身。注入方式要求**参数名必须为 `event`**，类型不限制。
+- `context: Contexts`：一个上下文对象，包含了所有的依赖和事件信息。注入方式要求**参数类型必须为 `Contexts`**，名称不限。
 
 :::tip
 
-`Contexts` 是一个字典-like 的对象，支持通过键访问依赖。
+`Contexts` 是一个字典对象，支持通过键访问依赖。
 
 对于每一个订阅者函数，其使用的 `Contexts` 实例都是独立的。
 
 ::: 
+
+
+若只使用 `Contexts`, 由于类型不明确，我们可以通过 `CtxItem` 来标记一个上下文项，以提供类型提示。
+
+:::details 定义上下文项
+```python {8-9,13-14}
+import arclet.letoderea as leto
+
+@leto.make_event
+class TestEvent:
+    foo: str
+    bar: int
+
+TEST_FOO = leto.CtxItem[str].make("foo")
+TEST_BAR = leto.CtxItem[int].make("bar")
+
+@leto.on(TestEvent)
+async def subscriber(ctx: leto.Contexts):
+    foo = ctx[TEST_FOO]  # type: str
+    bar = ctx[TEST_BAR]  # type: int
+    print(f"Received foo: {foo}, bar: {bar}")
+```
+:::
 
 ### 依赖收集
 
@@ -330,6 +357,7 @@ async def my_subscriber(int_value: int, str_value: str):
 - 在事件类内部定义
 - 声明事件类的类属性 `providers`, 例如 `providers = [FooProvider, Foo2Provider]`
 - 在 `on` 方法中通过 `providers` 参数传入。
+- 对于 `Publisher` 和 `Scope`, 通过 `bind` 方法绑定，以传递给适用的订阅者。
 
 ### 子依赖
 
@@ -377,9 +405,9 @@ async def test_subscriber(msg: Annotated[str, handle_foo_bar]):
 
 在上面的代码中，我们使用 `Depends` 标记定义了一个子依赖 `handle_foo_bar`，它接受 `foo` 和 `bar`，并返回一个字符串。然后，我们在订阅者函数中使用该子依赖来获取处理后的结果。
 
-通过将 `Depends` 包裹的子依赖作为参数的默认值，我们就可以在执行事件处理函数之前执行子依赖，并将其返回值作为参数传入事件处理函数。子依赖和普通的事件处理函数并没有区别，同样可以使用依赖注入，并且可以返回任何类型的值。
+通过将 `Depends` 包裹的子依赖作为参数的默认值或 Annotated，我们就可以在执行事件处理函数之前执行子依赖，并将其返回值作为参数传入事件处理函数。子依赖和普通的事件处理函数并没有区别，同样可以使用依赖注入，并且可以返回任何类型的值。
 
-子依赖执行后，其结果会被保存在 `Contexts` 中。 当我们在声明子依赖时，会有一个 `cache` 参数，用于指定多次使用同一个子依赖时是否使用缓存。
+子依赖执行后，其结果会被保存在 `Contexts` 中。当我们在声明子依赖时，会有一个 `cache` 参数，用于指定多次使用同一个子依赖时是否使用缓存。
 
 :::details 子依赖缓存
 ```python
@@ -403,6 +431,25 @@ async def s2(num: int = random_number):
 
 在同一个事件的分发过程中，这个随机函数的返回值将会保持一致。
 缓存的生命周期与当前接收到的事件相同。接收到事件后，子依赖在首次执行时缓存，在该事件处理完成后，缓存就会被清除。
+
+### 带上下文管理的子依赖
+
+有些子依赖可能需要在执行前后进行一些操作，例如资源的获取和释放。这时，我们可以将子依赖定义为一个上下文管理器。
+
+```python
+import arclet.letoderea as leto
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def _mgr():
+    client = ...
+    yield client
+    await client.aclose()
+
+@leto.on(TestEvent)
+async def subscriber(client = leto.Depends(_mgr)):
+    ...
+```
 
 ## 传播
 
@@ -520,6 +567,34 @@ class Cooldown(Propagator):
 ```
 ::: 
 
+### 传播依赖
+
+订阅传播本身没有无法声明对其他传播的依赖，只能依靠优先级来控制执行顺序。
+但如果某个传播需要依赖另一个传播的结果，leto 在执行时会自动识别到该情况并尝试调整执行顺序，以满足依赖关系。
+
+例如：
+```python
+@leto.on(TestEvent)
+async def s():
+    pass
+
+@s.propagate(prepend=True, priority=1)
+async def p1(bar: int):
+    executed.append(2)
+
+@s.propagate(prepend=True, priority=2)
+async def p2(foo: str):
+    return {"bar": 1}
+```
+
+由于 `p1` 依赖了 `p2` 的结果，leto 会在执行 p1 并识别到依赖缺失后，将 p1 放入等待队列，并先执行 p2 来满足依赖。这样就保证了传播者之间的依赖关系能够被正确处理。
+
+:::info
+
+若一个传播使用的参数是由 Provider 提供的，而该 Provider 会依赖于另一个传播的结果，则需要 Provider 在依赖不满足时抛出 `ProviderUnsatisfied` 异常，以便 leto 能够正确地调整传播的执行顺序。
+
+:::
+
 ## 特殊返回值
 
 针对订阅者函数，`Letoderea` 还提供了特殊的返回值：`ExitState`，其分为 `STOP` 和 `BLOCK` 两种。
@@ -561,13 +636,90 @@ async def blocked_subscriber(foo: str, bar: int):  # 此订阅者将不会被触
 ExitState 类既是 `Enum` 也是 `Exception`，因此可以直接 `raise STOP`。
 :::
 
+更进一步，如果需要同时返回结果并阻止事件传播，可以使用 `finish` 方法，将结果挂载：
+
+```python
+@leto.on(TestEvent, priority=1)
+async def subscriber(foo: str, bar: int):
+    print(f"Received foo: {foo}, bar: {bar}")
+    return BLOCK.finish(foo * int)  # 返回结果，并阻止当前事件的传播
+```
+
+## 中断
+
+在某些情况下，我们可能需要中断当前事件的处理流程，并等待另一个事件的处理结果。
+
+`Letoderea` 提供了 `StepOut` 组件来实现这一功能。
+
+:::code-group
+
+```python [静态声明]
+from arclet.letoderea import step_out
+
+@step_out(OtherEvent, block=True)
+async def handler(msg: str):
+    return msg
+
+@leto.on(TestEvent)
+async def subscriber(foo: str):
+    if foo == "Hello":
+        result = await handler.wait(timeout=30)
+        print(f"Received result from OtherEvent: {result}")
+```
+
+```python [运行时声明]
+from arclet.letoderea import step_out
+
+async def handler(msg: str):
+    return msg
+
+@leto.on(TestEvent)
+async def subscriber(foo: str):
+    if foo == "Hello":
+        step = step_out(OtherEvent, handler, block=True)
+        result = await step.wait(timeout=30)
+        print(f"Received result from OtherEvent: {result}")
+```
+:::
+
+若有需要，`StepOut` 还支持轮询等待，以进行多轮的事件交互：
+
+:::details 多轮交互
+```python {20}
+from arclet.letoderea import step_out
+
+async def handler(msg: str):
+    if msg == "continue!":
+        print("<<< receive in handler:", f'"{msg}"')
+        return "world!"
+    if msg == "end.":
+        print("<<< receive terminal signal")
+        return False
+    print("<<< receive event:", msg)
+
+step = step_out(OtherEvent, handler, block=True)
+    
+@leto.on(TestEvent)
+async def subscriber(foo: str):
+    if foo == "Hello":
+        if step.waiting:
+              print("Already waiting for OtherEvent, please wait.")
+              return
+        async for result in step(default=False):
+            if result is False:
+                print("Received terminal signal, ending interaction.")
+                break
+            print(f"Received result from OtherEvent: {result}")
+```
+:::
+
 ## 快捷方式
 
 `Letoderea` 提供了一些快捷方式来简化常见的事件处理模式。
 
 ### `bind`
 
-`bind` 是 `providers` 参数的一个快捷方式，以装饰器形式使用。
+`bind` 是注册订阅者时 `providers` 参数的一个快捷方式，以装饰器形式使用。
 
 :::code-group
 ```python [bind]
@@ -640,26 +792,70 @@ async def subscriber(foo: str, bar: int):
     print(f"Received foo: {foo}, bar: {bar}")
 ```
 
+不仅如此，`on`, `use` 和 `on_global` 方法也支持链式声明过滤器：
+
+```python
+@leto.on(TestEvent).if_(lambda event: event.foo == "Hello").if_(lambda event: event.bar > 0)
+async def subscriber(foo: str, bar: int):
+    print(f"Received foo: {foo}, bar: {bar}")
+```
+
 ### `deref`
 
-`deref` 是针对事件类的魔术方法，用于生成对事件的属性值的操作。
+`deref` 是针对事件类或注入参数的魔术方法，用于生成对事件或注入参数的属性值的操作。
 
 :::code-group
-```python [依赖注入]
+```python [依赖注入 - 事件操作]
 from typing import Annotated
 from arclet.letoderea import deref
 
 @leto.on(TestEvent)
 async def subscriber(baar: Annotated[int, deref(TestEvent).bar]):
     ...
+
+@leto.on(TestEvent)
+async def subscriber1(baar: int = deref(TestEvent).bar):
+    ...
+```
+
+```python [依赖注入 - 参数操作]
+from arclet.letoderea import deref
+
+@leto.on(TestEvent)
+async def subscriber2(baar: int = deref(int, "bar") + 1):
+    ...
 ```
 
 ```python [过滤器]
-from arclet.letoderea import deref, enter_if
+from arclet.letoderea import deref
 
-@leto.on(TestEvent)
-@(enter_if(deref(TestEvent).foo == "Hello") & (deref(TestEvent).bar > 0))
+@leto.on(TestEvent) \
+    .if_(deref(TestEvent).foo == "Hello") \
+    .if_(deref(TestEvent).bar > 0)
 async def subscriber(foo: str, bar: int):
     print(f"Received foo: {foo}, bar: {bar}")
 ```
 :::
+
+`deref` 作为过滤器，声明判断条件时，**可以和其他的 deref 或 Depend 结合使用**，以实现更复杂的条件判断。
+
+### `defer`
+
+`defer` 是针对后置传播的一层包装，用于注册一个一次性的后置传播者。当事件被触发时，该传播者会在主订阅者函数执行完毕后执行，并在执行后自动注销。
+
+```python
+from arclet.letoderea import defer
+
+@leto.on(TestEvent)
+async def subscriber(foo: str, bar: int):
+    defer(lambda: print(f"Deferred: Foo: {foo}, Bar: {bar}"))
+    print(f"Received foo: {foo}, bar: {bar}")
+
+# Output:
+# Received foo: Hello, bar: 42
+# Deferred: Foo: Hello, Bar: 42
+```
+
+### `param`
+
+`param` 是一个特殊的 `Depend`, 仅用来注入另一个参数。
