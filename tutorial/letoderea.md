@@ -567,6 +567,38 @@ class Cooldown(Propagator):
 ```
 ::: 
 
+### 传播提供者
+
+`Propagator` 可以通过实现 `providers` 方法来向订阅者注入自定义的 Provider，以支持类型级别的依赖注入。
+
+```python {13-14}
+from arclet.letoderea import Propagator, Provider
+from dataclasses import dataclass
+
+@dataclass
+class MatchResult:
+    matched: str
+    rest: str
+
+class MatchResultProvider(Provider[MatchResult]):
+    ...
+
+class MyMatcher(Propagator):
+    def providers(self) -> list[Provider | ProviderFactory]:
+        return [MatchResultProvider()]
+
+    def compose(self):
+        ...
+```
+
+`providers` 方法返回一个 Provider 或 ProviderFactory 列表，这些提供者会在传播时自动注册到订阅者上。
+
+:::info
+
+当 `Propagator` 同时实现了 `ProviderFactory` 协议时，也可以直接返回 `[self]`。
+
+:::
+
 ### 传播依赖
 
 订阅传播本身没有无法声明对其他传播的依赖，只能依靠优先级来控制执行顺序。
