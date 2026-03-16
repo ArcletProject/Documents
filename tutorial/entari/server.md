@@ -161,6 +161,7 @@ pip install satori-python-adapter-console
 ```yaml:no-line-numbers
 adapters:
   - $path: @console
+    logger_id: $logger_id  # 一般只能使用该值
     title: "控制台"
     user_name: "用户"
     bot_name: "机器人"
@@ -185,7 +186,7 @@ pip install satori-python-adapter-milky
 ```
 :::
 
-**路径(`$path`)**： `@milky.main` 或 `@milky.webhook` (websocket 或 webhook 适配器)
+**路径(`$path`)**： `@milky.main`, `@milky.webhook` 或 `milky.sse` (websocket, webhook 或 sse 适配器)
 
 **配置(Websocket)**：
 - `endpoint`: 连接 Milky 协议端的路径
@@ -197,6 +198,19 @@ pip install satori-python-adapter-milky
 adapters:
   - $path: @milky.main
     endpoint: "ws://localhost:8082/milky"
+    token: "your_token"
+```
+
+**配置(SSE)**：
+- `endpoint`: 连接 Milky 协议端的路径
+- `token`: Milky 协议的访问令牌, 默认为空
+- `token_in_query`: 是否将 token 放在查询参数中, 默认为`False`
+- `headers`: 连接时使用的自定义请求头, 默认为空字典
+
+```yaml:no-line-numbers
+adapters:
+  - $path: @milky.sse
+    endpoint: "http://localhost:8082/milky"
     token: "your_token"
 ```
 

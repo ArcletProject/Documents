@@ -48,13 +48,15 @@ pip install "arclet-entari[full]"
 ```
 :::
 
-## 配置文件
+## 新建环境
 
 :::warning
 
 这里我们假设你是安装的完整版本的 Entari。
 
 如果你只安装了基础版本的 Entari，则需要安装 `entari-cli` 才能使用命令行工具。
+
+另外，`entari-cli` 已有 docker 镜像，详见 [entari-cli](https://github.com/ArcletProject/entari-cli/pkgs/container/entari-cli)。
 
 :::code-group
 ```bash:no-line-numbers [pdm]
@@ -68,31 +70,55 @@ uv add entari-cli
 ```bash:no-line-numbers [pip]
 pip install entari-cli
 ```
-
 :::
 
-每个 Entari 应用都有一个配置文件，它管理了应用及其插件的全部配置。Entari 支持多种配置文件格式, 包括 `JSON` 和 `YAML` 等, 也支持直接在代码中配置。
-
-安装后, 可以通过命令行工具 `entari-cli` 来生成配置文件:
+我们利用 `entari-cli` 来创建一个新的 Entari 环境:
 
 ```shell:no-line-numbers
-$ entari config new --help
-用法: entari config new [-d]
+$ entari init --help
+用法: entari init [-d] [-py PATH] [--install-args PARAMS] [-c PATH]
 
-新建一个 Entari 配置文件
+新建一个虚拟环境并安装 Entari
 
 选项:
-  -d, --dev             是否生成开发用配置文件
+  -d, --dev             是否安装开发依赖项
+  -py, --python PATH    指定 Python 解释器版本/路径
+  --install-args PARAMS
+                        传递给包管理器的安装指令的额外参数
+  -c, --config PATH     指定配置文件路径
   -h, --help            显示帮助信息
 ```
 
-`config new` 指令会根据当前环境选择一个合适的文件格式。
-例如，若只进行了基础安装，则会生成一个 `.entari.json` 文件；若进行了完整安装，则会生成一个 `entari.yml` 文件。
+```bash:no-line-numbers
+~$ mkdir my_entari_project && cd my_entari_project
+~/my_entari_project$ entari init
+是否创建新的虚拟环境？ (Y/n): y
+请输入要使用的 Python 解释器路径
+ 0. cpython@3.11 (xxxx\python.EXE)
+ 1. cpython@3.14 (xxxx\uv\python\cpython-3.14.0-windows-x86_64-none\python.exe)
+请选择 (0):
+虚拟环境将创建在 xxx\my_entari_project\.venv
+Entari 环境初始化成功。
+请输入要使用的包管理器
+ 0. uv (xxxx\uv.EXE)
+ 1. pdm (xxxx\Python311\Scripts\pdm.EXE)
+ 2. pip (xxxx\Python311\Scripts\pip.EXE)
+请选择 (0): 2
+Collecting arclet.entari[cron,dotenv,yaml]
+...
+请选择配置文件格式： (yml):
+配置文件已创建在 xxx\my_entari_project\entari.yml
 
-以 `entari.yml` 为例, 生成的配置文件大致如下:
+```
+
+## 配置文件
+
+每个 Entari 应用都有一个配置文件，它管理了应用及其插件的全部配置。Entari 支持多种配置文件格式, 包括 `JSON` 和 `YAML` 等, 也支持直接在代码中配置。
+
+以 `YAML` 为例, 生成的配置文件大致如下:
 
 ```yaml title=entari.yml
-basic:
+basic:  # 基础配置
   network:
     - type: ws
       host: "127.0.0.1"
@@ -102,7 +128,7 @@ basic:
   log: 
     level: INFO
   prefix: ["/"]
-plugins:
+plugins:  # 插件配置
   .record_message: {}
   ::echo: {}
   ::inspect: {}
@@ -122,22 +148,28 @@ plugins:
 - `prefix`: 指令前缀, 可留空
 
 另外还有未列出的基础配置项：
-- `log.ignores`: 日志忽略列表, 用于忽略特定路径的日志输出 (例如 `["aiosqlite.core"]`)
-- `log.save`: 是否将日志保存到文件, 默认为 `false`; 可以传入特定配置项, 例如:
-  - `log.save.rotation`: 日志轮转时间, 默认为 `00:00`
-  - `log.save.compression`: 日志压缩格式, 可选 `zip`, `tar`, `gz`, `bz2`, `xz`
-  - `log.save.colorize`: 是否启用日志颜色, 默认为 `false`
+- `nickname`: 机器人昵称, 配合指令前缀使用
+- `log`
+  - `ignores`: 日志忽略列表, 用于忽略特定路径的日志输出 (例如 `["aiosqlite.core"]`)
+  - `save`: 是否将日志保存到文件, 默认为 `false`; 可以传入特定配置项, 例如:
+    - `rotation`: 日志轮转时间, 默认为 `00:00`
+    - `compression`: 日志压缩格式, 可选 `zip`, `tar`, `gz`, `bz2`, `xz`
+    - `colorize`: 是否启用日志颜色, 默认为 `false`
+  - `rich_error`: 是否启用 Rich 风格的错误日志, 默认为 `false`
+  - `short_level`: 是否在日志中使用短等级名称, 默认为 `false`
 - `skip_req_missing`: 是否在依赖缺失时跳过当前事件订阅者。参见 [监听事件](../letoderea.md#监听事件) 的相关内容。
 - `cmd_count`: 指令数量限制, 默认为 4096
 - `external_dirs`: 外部目录, 用于加载不在安装环境中的插件 (例如自定义插件), 可留空
+- `schema`: 是否为配置文件生成 JSON Schema, 默认为 `false`
 
 ### 插件配置
 
-`plugins` 部分用于配置插件, 它的每一个键对应于插件的名称，而值则对应于插件的配置。当没有进行配置时，值可以省略 (或者写成 {})。当存在配置时，值需要在插件的基础上缩进并写在接下来的几行中。例如：
+配置文件的 `plugins` 部分用于配置插件, 它的每一个键对应于插件的名称，而值则对应于插件的配置。当没有进行配置时，值可以省略 (或者写成 {})。当存在配置时，值需要在插件的基础上缩进并写在接下来的几行中。例如：
 
-```yaml:no-line-numbers
+```yaml:no-line-numbers title=entari.yml
 plugins:
   foo:
+    # 这里是 entari-plugin-foo 的配置
     bar:
       key1: value1
       key2: value2
@@ -155,11 +187,16 @@ plugins:
 - `$prelude`: 预加载插件列表。它的值是一个列表，包含了有必要先于其他插件加载的插件名称。
 - `$files`: 额外的插件配置文件搜索目录。通过该配置项，你可以将部分插件配置放在其他文件中，并通过该配置项指定这些文件的路径。
 
-:::tip 自定义前缀
+
+### 元信息
+
+插件配置项内也允许一些以 $ 开头的属性来记录插件和元信息。
+
+:::info 自定义前缀
 
 某些情况下，省略 `entari_plugin_` 前缀后的插件名称可能会与环境中的其他包名冲突。又或者，插件包名的前缀并不符合 `entari_plugin_` 的规范。
 此时可以通过配置 `$prefix` 来指定插件的前缀：
-```yaml:no-line-numbers
+```yaml:no-line-numbers title=entari.yml
 plugins:
   foo:
     $prefix: "entari_plugin_"
@@ -168,10 +205,10 @@ plugins:
 :::
 
 
-:::tip 自定义排序
+:::info 自定义排序
 
 有些插件需要在其他插件之前加载，但又不能作为预加载插件。这时可以通过配置 `$priority` 来指定插件的加载优先级:
-```yaml:no-line-numbers
+```yaml:no-line-numbers title=entari.yml
 plugins:
   foo:
     $priority: 15
@@ -183,6 +220,65 @@ plugins:
 `$priority` 的值越小，插件的加载优先级越高。默认情况下，所有插件的优先级为 16。
 
 :::
+
+其他的元信息还有:
+- `$disable`: 布尔值或者字符串。当值为字符串时表示这是一个条件判断表达式。 当条件满足时，插件将被禁用。
+- `$filter`: 字符串，同样也是一个条件判断表达式。当条件不满足时，插件将不会响应事件。参见 [过滤器](#过滤器)
+
+### 环境变量
+
+:::warning
+
+该功能需要你安装额外依赖 (**如果你是完整安装则忽略此提示**):
+::: code-group
+```bash:no-line-numbers [pdm]
+pdm add "arclet-entari[dotenv]"
+```
+
+```bash:no-line-numbers [uv]
+uv add "arclet-entari[dotenv]"
+```
+
+```bash:no-line-numbers [pip]
+pip install "arclet-entari[dotenv]"
+```
+:::
+
+Entari 支持在配置文件中通过插值语法使用环境变量。例如：
+
+```yaml:no-line-numbers title=entari.yml
+plugins:
+  llm:
+    api_key: ${{ env.LLM_API_KEY }}
+```
+
+当项目启动时，会将环境变量中的值替换进去。
+
+除了系统提供的环境变量外，Entari 同样支持 [dotenv](https://github.com/motdotla/dotenv)。你可以在当前目录创建一个 `.env` 或 `.env.local` 文件，并在里面填写你的环境变量。
+你可以在其中填写隐私信息 (例如账号密码)。 例如在上面的例子中你就可以这样写：
+
+```dotenv:no-line-numbers title=.env
+LLM_API_KEY = sk_xxxxxxxxxxxxxxxxxxxxxxx
+```
+
+环境变量同样适用于条件表达式，例如：
+
+```yaml:no-line-numbers title=entari.yml
+plugins:
+  ::auto_reload:
+    $disable: env.ENVIRONMENT == "prod"
+```
+
+这样，当环境变量 `ENVIRONMENT` 的值为 `prod` 时，`::auto_reload` 插件将被禁用。
+
+:::tip
+
+如果你在 `.env` 中编写了 `environment` 变量，Entari 将读取当前目录下的 `.env.xxx` 文件来覆盖环境变量。
+
+例如，如果你在 `.env` 中编写了 `ENVIRONMENT=dev`，那么 Entari 将读取 `.env.dev` 文件来覆盖环境变量。这样你就可以为不同的环境编写不同的配置文件了。
+
+:::
+
 
 ## 运行
 
@@ -212,7 +308,7 @@ plugins:
 :::
 
 
-配置文件生成后, 可以直接通过指令运行：
+环境新建并且已有配置文件后, 可以直接通过指令运行：
 ```shell:no-line-numbers
 $ entari run
 2025-06-28 23:18:35 INFO    | [core] Entari version xxxxx
@@ -228,7 +324,7 @@ $ python main.py
 2025-06-28 23:18:35 INFO    | [core] Entari version xxxxx
 ```
 
-倘若你没有配置文件, 也可以直接在代码中创建一个 `Entari` 实例并运行:
+倘若没有使用 `entari-cli` 也没有编写配置文件, 你也可以直接在代码中创建一个 `Entari` 实例并运行:
 
 ```python title=main.py
 from arclet.entari import Entari, WS, load_plugin
@@ -270,8 +366,32 @@ app.run()
 
 ## 插件
 
-如同配置文件一样，插件也是 Entari 的重要组成部分。它们可以扩展 Entari 的功能，提供更多的事件响应器、命令、定时任务等。
+插件是 Entari 最重要的组成部分。它们可以扩展 Entari 的功能，提供更多的事件响应器、命令、定时任务等。
 Entari 内置了一些插件，例如 `echo`、`inspect`、`help` 等。你可以在配置文件中启用它们，也可以通过代码加载它们。
+
+### 安装插件
+
+Entari 的插件可以直接使用包管理器安装，但是也可以通过 `entari add` 命令来安装插件:
+
+```shell:no-line-numbers
+$ entari add --help
+用法: entari add [--key KEY] [-D] [-O] [-p NUM] [-c PATH]
+
+安装一个 Entari 插件并添加到配置文件中
+基础指令: entari add [NAME]
+
+选项:
+  --key KEY             指定配置文件中的键名称
+  -D, --disabled        是否插件初始禁用
+  -O, --optional        是否仅存储插件配置而不加载插件
+  -p, --priority NUM    插件加载优先级
+  -c, --config PATH     指定配置文件路径
+  -h, --help            显示帮助信息
+```
+
+`entari add` 默认使用在 `entari init` 时设定的包管理器来安装插件，并且会自动将插件添加到配置文件中。你也可以通过 `--key` 选项来指定插件在配置文件中的键名称。
+
+### 开发插件
 
 想要创建一个新的插件，你可以使用 `entari new` 命令来生成一个插件模板:
 
@@ -289,8 +409,10 @@ $ entari new --help
   -D, --disabled        是否插件初始禁用
   -O, --optional        是否仅存储插件配置而不加载插件
   -p, --priority NUM    插件加载优先级
-  -py, --python PATH    指定 Python 解释器路径
-  --pip-args PARAMS     传递给 pip 的额外参数
+  -py, --python PATH    指定 Python 解释器版本/路径
+  --install-args PARAMS
+                        传递给包管理器的安装指令的额外参数
+  -c, --config PATH     指定配置文件路径
   -h, --help            显示帮助信息
 ```
 
@@ -452,24 +574,40 @@ async def echo_(content: command.Match[MessageChain], session: Session):
 ```
 :::
 
-还记得 `prefix` 配置项吗？无论是 `command.on`, `command.command` 还是 `command.mount`, 它们都有三个通用的参数:
-- `need_reply_me`: 该指令是否需要回复机器人
-- `need_notice_me`: 该指令是否需要 @ 机器人
-- `use_config_prefix`: 是否使用配置文件中的前缀 (默认为 `True`)
+在基础配置中，我们提供了名为 `prefix` 和 `nickname` 的配置项。假如将 `prefix` 设置为 `/`，`nickname` 设置为 `机器人`，则默认在群聊环境下只有以下信息可以触发指令调用：
 
-当我们配置了 `prefix` 时，Entari 会在指令触发后对消息内容进行处理，判断是否以配置的前缀开头，并去除前缀后再进行指令匹配。
+```bash:no-line-numbers
+机器人,echo 1234
+机器人:echo 1234
+机器人 echo 1234
+/echo 1234
+```
 
-:::tip 
+换句话说，一个指令能够被触发的实际条件为：
+- 消息内容以 `prefix` 中的任一前缀开头
+- 消息内容以 `nickname` 开头，后面跟随逗号，分号或空白字符
 
-对于 `command.xxxx`, 其可以通过配置文件去设置全局性的指令配置项，例如 `need_reply_me` 和 `need_notice_me`。
+而在私聊环境下，默认没有前缀的指令调用也能被正常执行。
+
+:::info 关于 `prefix` 的提示
+1. `prefix` 是一个列表，默认为空，表示没有前缀限制。你可以在其中添加任意字符串作为前缀，例如 `["/", "!", "."]`。
+2. 如果你在 `prefix` 中添加了空的前缀，那么 `/`, `.` 或无前缀都能触发指令。
+:::
+
+对于 `command.xxxx` (除了 `mount`, 它是独立配置)，你可以在配置文件中设置全局性的指令配置项，例如 `need_reply_me` 和 `need_notice_me`。
 ```yaml:no-line-numbers title=entari.yml
 plugins:
   .commands:
     need_notice_me: true
     use_config_prefix: false
 ```
+无论是配置项 还是 `command.mount`, 它们都有三个通用的参数:
+- `need_reply_me`: 该指令是否需要回复机器人
+- `need_notice_me`: 该指令是否需要 @ 机器人。在私聊环境下，`notice_me` 一定为 `True`，因为不需要 @ 机器人。
+- `use_config_prefix`: 是否使用配置文件中的前缀 (默认为 `True`)，否则前缀处理交由指令自行执行。
+- `ignore_prefix_filter`: 忽略前缀的条件表达式。当条件满足时，指令将忽略前缀的限制。默认私聊场景下会忽略前缀限制。
 
-:::
+在检查指令匹配时，它们处理顺序分别是 `reply > notice > prefix`。
 
 
 ### 配置模型
@@ -675,8 +813,6 @@ from bar import BBB # entari: package
 
 在这个例子中，`foo` 和 `bar` 都是子插件。Entari 会自动记录它们的状态，并在主插件被卸载时自动卸载它们。
 
-:::tip
-
 若某个插件属于目录结构，则其所有子目录下的 Python 文件都会被视为子插件。
 
 ```text
@@ -690,6 +826,24 @@ my_plugin/
 ```
 
 在这个例子中，`my_plugin` 作为主插件，其下的 `foo.py`、`bar.py`、`baz/qux.py` 和 `quux.py` 都会被视为子插件。
+
+:::tip 子插件的配置项
+
+子插件同样支持设置专属的配置项。具体而言，你需要在主插件的配置项下以 `.<子插件名>` 的形式来设置子插件的配置项。例如： 
+
+```yaml:no-line-numbers title=entari.yml
+plugins:
+  my_plugin:
+    # 这里是 my_plugin 的配置
+    key1: value1
+    key2: value2
+    .foo:  # 这里是 foo 子插件的配置
+      key3: value3
+      key4: value4
+    .bar:  # 这里是 bar 子插件的配置
+      key5: value5
+      key6: value6
+```
 
 :::
 
@@ -709,23 +863,28 @@ async def on_message(session: Session):
     await session.send("Hello, World!")
 ```
 
-但是在源码中直接书写账号或群号会导致隐私泄露，并且其他用户无法使用你的插件。Entari 提供了在配置文件中定义过滤器的方式:
+但是在源码中直接书写账号或群号会导致隐私泄露，并且其他用户无法使用你的插件。这就需要上面提到的配置文件中的全局过滤器:
 
 ```yaml:no-line-numbers title=entari.yml
 plugins:
   my_plugin:
-    $allow:
-      public: true
-      user: ["123456789"]
+    $filter: >
+      channel.type is public and user.id in ['123456789']
 ```
 
-这与上面的代码等价。Entari 会自动将配置文件中的过滤器转换为过滤器对象，并在运行时应用它们。
+Entari 会自动将配置文件中的过滤器表达式转换为过滤器对象，并在运行时应用它们。
 
-:::warning
-
-目前而言，这种写法并不是很方便。我们会在图形化界面实现后再来完善这个功能。
-
-:::
+注意事项：
+1. filter 表达式的可用变量包括：`channel`, `member`, `guild`, `user`, `env`, `message`, `platform` 等
+2. 除开 python 允许的运算符外，filter 表达式中也可以使用语义化的运算符，如 `gt`, `eq`, `nin` 等
+    ```yaml:no-line-numbers
+    $filter: channel.name eq "Test" and user.id nin ['123456789', '987654321']
+    ```
+3. filter 表达式中可以使用一个函数 `regex`, 等价于 `re.match`
+    ```yaml:no-line-numbers
+    $filter: regex(r"^Alice*", user.name)
+    ```
+4. filter 表达式中乘法、幂运算、整除和位运算都已禁用
 
 ## 消息链
 
@@ -986,9 +1145,9 @@ async def on_message(session: Session):
 - `CommandOutput`: 指令的输出信息发送前触发。监听器可返回修改后的输出信息(类型要求为 `str | MessageChain`)，**或者返回 `True/False` 来允许/阻止输出**。
   - 可注入内容: `session: Session`, `command: Alconna`, `type: "help" | "shortcut" | "completion" | "error"`, `content: str` 
 - `SendRequest`: 发送消息前触发。监听器可返回修改后的消息内容(类型要求为 `MessageChain`)，**或者返回 `True/False` 来允许/阻止发送**。
-  - 可注入内容: `account: Account`, `channel: str`, `message: MessageChain`, `session: Session | None` 
+  - 可注入内容: `account: Account`, `channel: Channel`, `message: MessageChain`, `session: Session | None` 
 - `SendResponse`: 发送消息后触发，仅可作为消息记录使用。
-  - 可注入内容: `account: Account`, `channel: str`, `message: MessageChain`, `result: list[MessageReceipt]`, `session: Session | None` 
+  - 可注入内容: `account: Account`, `channel: Channel`, `message: MessageChain`, `result: list[MessageReceipt]`, `session: Session | None` 
 
 :::details SendRequest 示例
 

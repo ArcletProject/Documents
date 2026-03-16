@@ -565,7 +565,12 @@ class Cooldown(Propagator):
         yield self.before, True
         yield self.after, False
 ```
-::: 
+:::
+
+除了 `compose` 外，`Propagator` 还可以实现 `validate` 和 `providers` 方法
+- `validate` 方法用于判断当前的传播者是否适用于某个订阅者。
+- `providers` 方法用于为订阅者提供额外的依赖注入提供者（例如 `Cooldown` 可能需要提供一个 `last_time` 的依赖）。
+
 
 ### 传播依赖
 
