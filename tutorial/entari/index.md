@@ -149,6 +149,8 @@ plugins:  # 插件配置
 
 另外还有未列出的基础配置项：
 - `nickname`: 机器人昵称, 配合指令前缀使用
+- `str_as_message`: 发送字符串时是否自动将字符串解析为 Satori 消息链语法, 默认为 `true`。若设为 `false`, 则发送的字符串会被当作纯文本处理。
+- `superusers`: 超级用户配置, 键为平台名称, 值为该平台的超级用户 ID 列表。
 - `log`
   - `ignores`: 日志忽略列表, 用于忽略特定路径的日志输出 (例如 `["aiosqlite.core"]`)
   - `save`: 是否将日志保存到文件, 默认为 `false`; 可以传入特定配置项, 例如:
@@ -186,24 +188,37 @@ plugins:
 除了插件包名，plugins 还支持一些特殊的配置项:
 - `$prelude`: 预加载插件列表。它的值是一个列表，包含了有必要先于其他插件加载的插件名称。
 - `$files`: 额外的插件配置文件搜索目录。通过该配置项，你可以将部分插件配置放在其他文件中，并通过该配置项指定这些文件的路径。
+- `$prefix`: 自定义插件名查找前缀，以列表形式配置。某些情况下，省略 `entari_plugin_` 前缀后的插件名称可能会与环境中的其他包名冲突，又或者插件包名的前缀并不符合 `entari_plugin_` 的规范。此时可以通过 `$prefix` 来为多个插件统一指定前缀：
+
+```yaml:no-line-numbers title=entari.yml
+plugins:
+  $prefix:
+    - key: my_prefix_
+      plugins:
+        - foo
+        - bar
+  foo: {}
+  bar: {}
+# 上述配置等价于:
+#   my_prefix_foo
+#   my_prefix_bar
+```
+
+`$prefix` 中 `plugins` 的值还可以引用 `$files` 中定义的文件路径，以载入该文件中的所有插件名：
+
+```yaml:no-line-numbers title=entari.yml
+plugins:
+  $files:
+    - extra_plugins.yml
+  $prefix:
+    - key: my_prefix_
+      plugins: extra_plugins.yml  # 引用 $files 中的文件名，应用该文件中所有插件
+```
 
 
 ### 元信息
 
 插件配置项内也允许一些以 $ 开头的属性来记录插件和元信息。
-
-:::info 自定义前缀
-
-某些情况下，省略 `entari_plugin_` 前缀后的插件名称可能会与环境中的其他包名冲突。又或者，插件包名的前缀并不符合 `entari_plugin_` 的规范。
-此时可以通过配置 `$prefix` 来指定插件的前缀：
-```yaml:no-line-numbers title=entari.yml
-plugins:
-  foo:
-    $prefix: "entari_plugin_"
-```
-
-:::
-
 
 :::info 自定义排序
 
@@ -437,6 +452,29 @@ metadata(name="my_plugin")
 
 这就是一个最简单的插件，它只包含了一个 `metadata` 调用。`metadata` 函数用于设置插件的元数据，例如名称、版本、作者等。
 
+`metadata` 支持以下常用参数：
+
+```python
+from arclet.entari import metadata, PluginRole
+
+metadata(
+    name="my_plugin",
+    role=PluginRole.NORMAL,    # 插件角色
+    author=[{"name": "Author"}],
+    version="1.0.0",
+    description="A simple plugin",
+)
+```
+
+其中 `role` 参数用于设置插件角色，`PluginRole` 枚举包含以下取值：
+
+- `NORMAL`（默认）：普通插件，适用于大多数场景，具有完整的生命周期。
+- `UTILITY`：工具插件，适用于提供辅助功能的插件。
+- `LIBRARY`：库插件，适用于提供公共功能的插件，可被其他插件依赖。
+- `COMPLEX`：复杂插件，适用于具有复杂功能或生命周期的插件。
+
+该角色主要用于 `::control` 插件等管理工具对插件进行分类和筛选。
+
 ### 事件系统
 
 `Entari` 的事件系统基于 [`Letoderea`](../letoderea.md). 也就是说你可以直接按照 [监听事件](../letoderea.md#监听事件) 的方式来注册事件监听器。
@@ -561,7 +599,7 @@ def echo_(content: command.Match[MessageChain]):
     return content.result
 ```
 
-```python title=my_plugin.py [command.mount] {5-9}
+```python title=my_plugin.py [command.mount] {7-9}
 from arclet.alconna import Alconna, Args, AllParam
 from arclet.entari import MessageChain, Session, command
 
@@ -573,6 +611,28 @@ async def echo_(content: command.Match[MessageChain], session: Session):
     await session.send(content.result)
 ```
 :::
+
+对于 `command.mount` 返回的调度器，还可以调用 `.as_execute()` 方法来注册为指令执行事件处理，使其能够通过 `session.execute()` 编程式地调用：
+
+```python title=my_plugin.py
+from arclet.alconna import Alconna, Args, AllParam
+from arclet.entari import MessageChain, Session, command
+
+alc = Alconna("echo", Args["content", AllParam])
+disp = command.mount(alc).as_execute()
+
+@disp.handle()
+async def echo_(content: command.Match[MessageChain], session: Session):
+    # 此时要求处理函数通过 return 来返回结果，而不是通过 session.send() 发送消息
+    # 否则 execute() 将无法获取返回值
+    return content.result
+
+# 在其他地方通过 session.execute 编程式调用
+# await session.execute(alc, content="hello")
+```
+
+此外，`.for_execute()` 方法可以返回一个专门处理 `CommandExecute` 事件的调度器，用于拦截指令执行事件并做额外处理。
+
 
 在基础配置中，我们提供了名为 `prefix` 和 `nickname` 的配置项。假如将 `prefix` 设置为 `/`，`nickname` 设置为 `机器人`，则默认在群聊环境下只有以下信息可以触发指令调用：
 
@@ -609,6 +669,14 @@ plugins:
 
 在检查指令匹配时，它们处理顺序分别是 `reply > notice > prefix`。
 
+:::tip
+
+通过 `ignore_prefix_filter` 设置为 `is_notice_me`, 则除了私聊外，在群聊中 @ 机器人也能无需前缀触发指令。
+
+如果更进一步设置为 `is_reply_me or is_notice_me`, 则在群聊中回复或 @ 机器人都能无需前缀触发指令。
+
+:::
+
 
 ### 配置模型
 
@@ -632,14 +700,24 @@ from arclet.entari import BasicConfModel, metadata, plugin_config
 class MyPluginConfig(BasicConfModel):
     foo: str
     bar: int = 42
-
-metadata(name="my_plugin", config=MyPluginConfig)
-
-conf = plugin_config(MyPluginConfig)
 ```
 
 在这个例子中，我们定义了一个名为 `MyPluginConfig` 的配置模型，它包含两个字段：`foo` 和 `bar`。其中 `bar` 有一个默认值 `42`。
 当插件加载时，Entari 会自动读取配置文件中的 `my_plugin` 部分，并将其转换为 `MyPluginConfig` 的实例。
+
+`BasicConfModel` 还支持通过类参数 `extra` 来控制对额外配置项的处理：
+
+```python
+class StrictConfig(BasicConfModel, extra="forbid"):
+    foo: str
+
+class LooseConfig(BasicConfModel, extra="allow"):
+    foo: str
+```
+
+- `extra="forbid"`（默认值）：禁止额外的配置项，若配置文件中存在未定义的字段则会报错。
+- `extra="allow"`：允许额外的配置项，未定义的字段也会被保留。
+- `extra="ignore"`：忽略额外的配置项，未定义的字段会被静默丢弃。
 
 :::details 配置文件示例
 
@@ -691,6 +769,22 @@ async def on_ready():
     print("Entari is ready!")
 ```
 :::
+
+### 插件管理
+
+Entari 提供了一个内建的 `::control` 插件，用于在运行时通过指令管理其他插件的启用状态。
+
+在配置文件中启用 `::control` 后，你可以使用以下指令：
+
+- `/plugin list`：列出所有已安装的普通功能插件
+- `/plugin disable <插件名>`：在特定频道/群组中禁用插件
+- `/plugin enable <插件名>`：在特定频道/群组中启用插件
+- `/plugin disable --global <插件名>`：全局禁用插件
+- `/function list`：列出插件中的功能（即事件响应器）
+- `/function disable <功能名>`：禁用特定功能
+- `/function enable <功能名>`：启用特定功能
+
+控制器的配置存储在 `local_data` 中，重启后依然生效。`::control` 插件会尊重插件的 `PluginRole` 角色，仅对 `NORMAL` 角色插件进行管理。
 
 ### 副作用
 
@@ -827,8 +921,6 @@ my_plugin/
 
 在这个例子中，`my_plugin` 作为主插件，其下的 `foo.py`、`bar.py`、`baz/qux.py` 和 `quux.py` 都会被视为子插件。
 
-:::tip 子插件的配置项
-
 子插件同样支持设置专属的配置项。具体而言，你需要在主插件的配置项下以 `.<子插件名>` 的形式来设置子插件的配置项。例如： 
 
 ```yaml:no-line-numbers title=entari.yml
@@ -845,7 +937,26 @@ plugins:
       key6: value6
 ```
 
-:::
+子插件的配置中同样可以设置元信息（如 `$disable`、`$filter` 等）：
+
+```yaml:no-line-numbers title=entari.yml
+plugins:
+  my_plugin:
+    .foo:
+      $disable: true  # 禁用 foo 子插件
+    .bar:
+      $filter: channel.id == "123456789"  # 仅限特定频道
+```
+
+此外，子插件在代码中也可以声明自己的 `metadata`，包括 `PluginRole`：
+
+```python title=my_plugin/foo.py
+from arclet.entari import metadata, PluginRole
+
+metadata(name="foo", role=PluginRole.NORMAL)
+```
+
+这样，像 `::control` 这样的管理插件就可以针对性地控制某个插件下的特定子插件或功能，而不是只能控制整个插件。
 
 ### 过滤器
 
@@ -956,6 +1067,26 @@ images4 = message.select(Image)
 
 ```python:no-line-numbers
 urls = images1.map(lambda x: x.src)
+```
+
+### 自定义消息元素
+
+Entari 允许你通过 `plugin.component` 注册自定义的消息元素渲染器，使得发送消息时可以嵌入自定义元素：
+
+```python title=my_plugin.py
+from arclet.entari import MessageChain, Session, plugin
+
+@plugin.component("greet")
+async def render_greeting(attrs: dict, children: list, session: Session):
+    name = attrs.get("name", "World")
+    return MessageChain(f"Hello, {name}!")
+```
+
+注册后，你可以通过 `<component is="greet">` 或 `<greet>` 标签在消息中使用该元素：
+
+```python
+await session.send(MessageChain('<greet name="Alice"/>'))
+# 输出: Hello, Alice!
 ```
 
 ## 定时任务
@@ -1106,7 +1237,7 @@ async def on_message(session: Session):
 ```
 
 ```shell:no-line-numbers
-2025-06-30 00:44:14 INFO    | [core] Entari version 0.15.0
+2025-06-30 00:44:14 INFO    | [core] Entari version 0.18.0
 2025-06-30 00:44:14 SUCCESS | [plugin] loaded plugin 'arclet.entari.builtins.auto_reload'
 2025-06-30 00:44:14 SUCCESS | [plugin] loaded plugin 'my_plugin'
 ...

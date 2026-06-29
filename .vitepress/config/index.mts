@@ -1,10 +1,11 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from "vitepress-plugin-mermaid";
 import nav from './nav'
 import sidebar from './sidebar'
 import fence from "../markdown/fence";
 
 // https://vitepress.dev/reference/site-config
-export default defineConfig({
+const config = defineConfig({
   title: "ArcletProject",
   description: "Document for ArcletProject",
   head: [
@@ -66,5 +67,10 @@ export default defineConfig({
   },
   rewrites: {
     '/docs/:path': '/:path',
+  },
+  mermaid: {
+
   }
 })
+
+export default withMermaid(config)

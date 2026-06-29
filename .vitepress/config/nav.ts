@@ -1,4 +1,6 @@
-export default [
+import {DefaultTheme} from "vitepress";
+
+const navs: DefaultTheme.NavItem[] = [
   { text: '入门', link: '/tutorial/intro.md', activeMatch: '/tutorial/intro.md' },
   {
     text: '深入',
@@ -6,4 +8,6 @@ export default [
       { text: '开发指南', link: '/appendices/WIP.md', activeMatch: '/appendices/WIP.md' },
     ]
   },
-]
+];
+
+export default navs;

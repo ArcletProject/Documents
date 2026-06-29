@@ -1,4 +1,6 @@
-const tutorial = [
+import {DefaultTheme} from "vitepress";
+
+const tutorial: DefaultTheme.Sidebar = [
   {
     text: "",
     items: [
@@ -38,6 +40,7 @@ const tutorial = [
         items: [
           { text: "服务器", link: "/tutorial/entari/server.md" },
           { text: "数据库", link: "/tutorial/entari/database.md" },
+          { text: "权限", link: "/tutorial/entari/permission.md" },
         ]
       },
       {

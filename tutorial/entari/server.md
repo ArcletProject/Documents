@@ -273,7 +273,6 @@ adapters:
 **配置(Websocket)**：
 - `app_id`: QQ 机器人的应用 ID
 - `secret`: QQ 机器人的应用密钥
-- `token`: 连接 QQ 机器人的访问令牌
 - `shard`: 分片信息，格式为 `(shard_id, shard_count)`，默认为空
 - `intent`: 该 QQ 机器人的事件订阅掩码，具体请参考 [QQ 机器人文档](https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/event-emit.html#%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85intents):
   - `guilds`: 频道和子频道相关事件，默认开启
@@ -281,6 +280,7 @@ adapters:
   - `guild_messages`: 私域机器人下的频道消息事件，默认**关闭**
   - `guild_message_reactions`: 频道消息表态事件，默认**开启**
   - `direct_message`: 频道私信事件，默认**关闭**
+  - `group_members`: 群聊成员事件 (群成员变动等)，默认**开启**
   - `c2c_group_at_messages`: 单聊和群聊事件 (单聊消息、群 @ 消息等)，默认**关闭**
   - `interaction`: 按钮互动事件，默认**关闭**
   - `message_audit`: 频道消息审核事件，默认**开启**

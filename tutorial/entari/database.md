@@ -1,6 +1,6 @@
 ---
 prev: 服务器插件
-next: Tarina
+next: 权限插件
 ---
 
 # 数据库插件
@@ -326,3 +326,180 @@ async def _(model: Model | None):
         print(model)
 ```
 :::
+
+## 数据库迁移
+
+`entari-plugin-database` 内置了基于 [Alembic](https://alembic.sqlalchemy.org/) 的自动迁移系统。当 ORM 模型结构发生变更时，插件会自动检测差异并执行迁移，无需手动编写迁移脚本。
+
+### 自动迁移机制
+
+迁移在模型类定义完成后自动触发。插件的 `migration_callback` 会收集所有继承自 `Base` 的子类，按模块分组，依次进行迁移。
+
+**工作流程：**
+
+```text
+模型定义完成 → 等待服务进入 blocking 阶段 → 加载迁移状态
+→ 按模块分组分析模型 → 生成迁移计划 → 执行迁移 → 更新状态
+```
+
+#### Revision 计算
+
+每个模型的 `revision` 由其表结构的规范 JSON 表示的 **MD5 哈希值** 决定。以下因素的变化会影响 revision：
+
+- 列名、列类型、可空性
+- 主键、外键
+- 索引和约束
+- 默认值、`server_default`
+
+如果哈希值发生变化且与迁移状态记录不一致，插件会触发结构迁移。
+
+你也可以通过设置 `__revision__` 属性来手动控制 revision：
+
+```python
+class Record(Base):
+    __revision__ = "v2"  # 手动指定 revision
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+```
+
+#### 迁移状态文件
+
+迁移记录存储在用户目录下：
+
+```text
+~/.entari/data/database/migrations_lock.json
+```
+
+该文件使用 JSON 格式记录每个表的 revision 历史、所属模块和自定义脚本版本。每次迁移步骤成功后都会原子性地更新此文件，确保崩溃恢复安全。
+
+```json
+{
+  "my_plugin_record": {
+    "model_revision_history": [
+      "98c3d2999538f87c8d7c6eac8418514c",
+      "33463c3c37ae3e595e34b094a29bd996"
+    ],
+    "module": "my_plugin",
+    "name": "Record",
+    "revision": "33463c3c37ae3e595e34b094a29bd996"
+  }
+}
+```
+
+### 支持的操作
+
+自动迁移支持以下结构变更：
+
+| 操作 | 说明 |
+|------|------|
+| 添加列 | `AddColumnOp` — 新增字段 |
+| 删除列 | `DropColumnOp` — 移除字段 |
+| 修改列类型 | `AlterColumnOp` — 变更字段类型 |
+| 添加约束 | `AddConstraintOp` — 新增主键/外键/唯一约束 |
+| 删除约束 | `DropConstraintOp` — 移除约束 |
+| 创建索引 | `CreateIndexOp` — 新增索引 |
+| 变更默认值 | `AlterColumnOp` — 修改 `server_default` |
+
+### SQLite 特殊处理
+
+SQLite 对 `ALTER TABLE` 的支持有限，不支持直接删除列或修改约束。迁移系统会自动检测 SQLite 方言，并采用 **Batch 模式**：
+
+当检测到需要 `DropColumnOp`、`AlterColumnOp`、`AddConstraintOp` 等操作时，会使用 Alembic 的 `batch_alter_table` 重新创建表，将数据迁移到新表后删除旧表。
+
+:::warning
+SQLite 的 Batch 模式可能在大型表上消耗较多时间和存储空间（重建整表），生产环境中请提前规划。
+:::
+
+### 多数据库迁移
+
+如果配置了多个数据库连接（通过 `binds` 和模型的 `__bind_key__`），迁移系统会按引擎分组，分别在对应的数据库上执行迁移操作：
+
+```python
+class User(Base):
+    __bind_key__ = "user_db"  # 指定使用 user_db 数据库
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+```
+
+### 表重命名检测
+
+当模型被重命名时，迁移系统会通过 `(模块名, 类名)` 作为键检测表重命名操作，执行 `ALTER TABLE RENAME` 而非删除重建。
+
+### 废弃表清理
+
+当模型的 ORM 类被移除后，迁移系统会检测到数据库中对应的表已不再有模型定义，自动执行 `DROP TABLE`。
+
+### 自定义迁移脚本
+
+对于无法通过自动结构迁移完成的操作（如数据迁移、复杂索引变更等），可以使用 `register_custom_migration` 装饰器注册自定义迁移脚本。
+
+#### 注册升级脚本
+
+```python
+from entari_plugin_database import register_custom_migration, Base, Mapped, mapped_column
+
+class Record(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+
+@register_custom_migration(Record, "upgrade", script_id="add_index", script_rev="1")
+def upgrade(ops, mc, table):
+    """为 name 字段添加索引"""
+    ops.create_index("idx_record_name", table, ["name"])
+```
+
+#### 注册降级脚本
+
+```python
+@register_custom_migration(Record, "downgrade", script_id="add_index", script_rev="1")
+def downgrade(ops, mc, table):
+    """移除索引"""
+    ops.drop_index("idx_record_name", table)
+```
+
+#### 参数说明
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `model_or_table` | `str \| type[Base]` | — | 目标 ORM 模型类或表名 |
+| `action_type` | `"upgrade" \| "downgrade"` | `"upgrade"` | 脚本类型 |
+| `script_id` | `str \| None` | 函数名 | 脚本标识，升级与降级需使用相同 ID |
+| `script_rev` | `str` | `"1"` | 脚本版本，变化会触发重新执行 |
+| `replace` | `bool` | `True` | 若为 `True`，跳过该表的自动结构迁移 |
+| `run_always` | `bool` | `False` | 若为 `True`，每次启动都执行 upgrade |
+
+#### 脚本函数签名
+
+自定义脚本接收三个参数：
+
+- `ops: Operations` — Alembic 操作对象，用于执行 DDL 操作
+- `mc: MigrationContext` — Alembic 迁移上下文
+- `table: str` — 当前操作的表名
+
+示例 —— 使用 `replace=True` 完全接管表的管理：
+
+```python
+@register_custom_migration(Record, "upgrade", script_id="full_control", script_rev="2", replace=True)
+def full_upgrade(ops, mc, table):
+    ops.create_table(
+        table,
+        ops.Column("id", sa.Integer, primary_key=True),
+        ops.Column("name", sa.String, nullable=False),
+        ops.Column("email", sa.String),
+    )
+
+@register_custom_migration(Record, "downgrade", script_id="full_control", script_rev="2")
+def full_downgrade(ops, mc, table):
+    ops.drop_table(table)
+```
+
+:::tip
+使用 `replace=True` 时，自动结构迁移将完全由你的脚本控制，请确保 upgrade 和 downgrade 脚本能正确同步表的完整结构。
+:::
+
+### 注意事项
+
+1. **自动迁移不可逆**：虽然系统会记录 revision 历史，但并不提供自动回滚功能。建议在生产环境操作前备份数据库。
+2. **自定义脚本顺序**：自定义脚本在自动结构迁移之前执行，同一张表内按注册顺序执行。
+3. **多引擎容错**：迁移按引擎分组执行，单个引擎失败不会影响其他引擎。
+4. **配置热重载**：`ConfigReload` 事件会重新初始化数据库引擎并重建表，但不会执行迁移。

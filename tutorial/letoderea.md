@@ -67,7 +67,8 @@ def on(
     providers: TProviders | None = None,
     propagators: list[Propagator] | None = None,
     once: bool = False,
-    skip_req_missing: bool | None = None
+    skip_req_missing: bool | None = None,
+    label: str | None = None
 ):
     ...
 ```
@@ -81,6 +82,13 @@ def on(
    - 传播者的定义和注册将在后续章节中介绍。
 - `once`：是否为临时订阅者。临时订阅者在事件被触发后会将自动注销。
 - `skip_req_missing`：是否在依赖缺失时跳过该订阅者。当传入 `None` 时，表示使用全局配置。
+- `label`：订阅者的标签，用于标识该订阅者。当未指定时，默认使用函数名作为标签。标签可用于调试和日志记录。
+::: 
+
+:::tip
+
+在订阅者创建时，若其函数名为 `_` 或 `<lambda>` 且未指定 `label`，`Letoderea` 会发出警告，建议使用命名函数或显式指定 `label` 参数。
+
 :::
 
 
@@ -118,6 +126,27 @@ test_pub = leto.define(TestEvent, name="test")
 每个发布者都有一个唯一的名称 (name)，用于标识该发布者。未指定名称时，发布者会使用事件的类名作为名称。
 
 
+`define` 方法还可以以装饰器形式使用，来为事件类指定一个自定义校验器：
+
+```python
+@leto.define(name="validated_event")
+def _(event: MyEvent) -> bool:
+    return event.is_valid
+```
+
+此时，`define` 会从被装饰函数的类型注解中推断事件的类型，并将该函数作为事件的校验器。校验器会在事件触发时被调用，只有校验通过的事件才会被分发给订阅者。
+
+发布者还可以通过 `check` 方法对注册的订阅者进行过滤：
+
+```python
+pub = leto.define(TestEvent)
+
+@pub.check
+def _(self, subscriber: leto.Subscriber) -> bool:
+    return subscriber.priority > 10
+```
+
+
 ### `use` 方法
 
 
@@ -131,11 +160,17 @@ sub2 = leto.use("test", lambda value: print(f"Received {value}"))
 
 ```
 
-> [!WARNING] 未实装的功能
-> `use` 方法传入字符串作为发布者标识时，允许使用 glob 模式进行匹配：
-> ```python
-> leto.use("test.*", lambda value: print(f"Received all test {value}"))
-> ```
+`use` 方法传入字符串作为发布者标识时，允许使用 glob 模式进行匹配：
+
+```python
+pub1 = leto.define(TestEvent, name="test.foo")
+
+@leto.use("test.*")
+async def _(value: int):
+    print(f"Received all test {value}")
+```
+
+当传入的字符串包含 `*`, `?`, `[` 等通配符时，`use` 会使用 [`fnmatch`](https://docs.python.org/3/library/fnmatch.html) 对所有已注册的发布者进行模式匹配。
 
 ### `on_global` 方法
 
@@ -179,6 +214,14 @@ class Resultable(Protocol[T]):
 
 `post` 和 `publish` 方法是同步的，它们的返回值是 `asyncio.Task` 对象。这意味着，你可以在某些同步的代码中进行事件的触发。
 
+`publish`, `post` 和 `waterfall` 方法还支持 `inherit_ctx` 参数，用于将当前事件的上下文继承给新事件的事件处理过程。这在事件处理过程中需要触发新事件，并且希望新事件能继承当前事件的上下文时非常有用：
+
+```python
+async def handle_event(event: MyEvent, ctx: leto.Contexts):
+    # 触发新事件，继承当前的上下文
+    await leto.publish(AnotherEvent(...), inherit_ctx=ctx)
+```
+
 :::
 
 ### 轮询事件
@@ -212,9 +255,13 @@ await leto.publish(TestEvent(foo="Hello", bar=42))
 # Output: Received foo: Hello, bar: 42
 ```
 
-`Letoderea` 默认会提供两个依赖：
+`Letoderea` 默认会提供几个内置依赖：
 - `event`：事件本身。注入方式要求**参数名必须为 `event`**，类型不限制。
 - `context: Contexts`：一个上下文对象，包含了所有的依赖和事件信息。注入方式要求**参数类型必须为 `Contexts`**，名称不限。
+- `EVENT`：一个 `CtxItem` 哨兵对象，通过 `ctx[leto.EVENT]` 获取当前事件对象。
+- `RESULT`：一个 `CtxItem` 哨兵对象，通过 `ctx[leto.RESULT]` 获取当前订阅者函数（或前置传播）的返回值。
+- `STACK`：一个 `CtxItem` 哨兵对象，通过 `ctx[leto.STACK]` 获取当前的 `AsyncExitStack` 实例。
+- `SUBSCRIBER`：一个 `CtxItem` 哨兵对象，通过 `ctx[leto.SUBSCRIBER]` 获取当前的 `Subscriber` 实例。
 
 :::tip
 
@@ -261,6 +308,16 @@ class MyEvent:
 ```
 
 除了定义 `gather` 方法外，我们也可以在调用 `define` 时传入 `supplier` 参数，或使用 `@gather` 装饰器来注册一个依赖收集方法。这对于目标事件属于**第三方库或无法修改**的情况非常有用。
+
+此外，`Letoderea` 还提供了全局的共享提供者列表 `shared_suppliers`，其中的每个函数都会在所有事件的依赖收集中执行，适用于需要为所有事件注入公共依赖的场景：
+
+```python
+import arclet.letoderea as leto
+
+@leto.shared_suppliers.append
+async def add_timestamp(ctx: leto.Contexts):
+    ctx["timestamp"] = time.time()
+```
 
 
 :::details 为 `int` 定义依赖收集
@@ -567,9 +624,15 @@ class Cooldown(Propagator):
 ```
 :::
 
-除了 `compose` 外，`Propagator` 还可以实现 `validate` 和 `providers` 方法
+除了 `compose` 外，`Propagator` 还可以实现 `validate` 和 `providers` 方法：
 - `validate` 方法用于判断当前的传播者是否适用于某个订阅者。
 - `providers` 方法用于为订阅者提供额外的依赖注入提供者（例如 `Cooldown` 可能需要提供一个 `last_time` 的依赖）。
+
+:::warning
+
+当 `Propagator` 通过 `providers` 方法返回额外的提供者时，订阅者会调用 `_recompile` 方法重新计算其所有参数——包括订阅者自身的参数、子依赖以及所有已有的传播者（无论前置还是后置）的参数。这意味着新增的提供者会影响整个订阅者链路的依赖解析，部分参数的绑定结果可能会发生变化。
+
+:::
 
 
 ### 传播依赖
@@ -647,7 +710,8 @@ ExitState 类既是 `Enum` 也是 `Exception`，因此可以直接 `raise STOP`�
 @leto.on(TestEvent, priority=1)
 async def subscriber(foo: str, bar: int):
     print(f"Received foo: {foo}, bar: {bar}")
-    return BLOCK.finish(foo * int)  # 返回结果，并阻止当前事件的传播
+    result = foo * bar
+    return BLOCK.finish(result)  # 返回结果，并阻止当前事件的传播
 ```
 
 ## 中断
@@ -864,3 +928,118 @@ async def subscriber(foo: str, bar: int):
 ### `param`
 
 `param` 是一个特殊的 `Depend`, 仅用来注入另一个参数。
+
+## 重载分发 (Overload)
+
+`Letoderea` 支持基于参数类型的重载分发，通过 `overload` 和 `apply_overload` 来实现。这可以让你根据参数的运行时类型来选择不同的处理逻辑。
+
+```python
+import arclet.letoderea as leto
+from arclet.letoderea import overload, apply_overload
+
+@leto.make_event
+class OverloadEvent:
+    a: int | None = None
+    b: bool | None = None
+
+@overload
+async def handle() -> str:
+    return "default"
+
+@overload
+async def handle(a: int, b: bool) -> str:
+    return f"both: {a}, {b}"
+
+@overload
+async def handle(a: int) -> str:
+    return f"int: {a}"
+
+@leto.on(OverloadEvent)
+@apply_overload
+async def handle(a: int | None = None, b: bool | None = None) -> str:
+    ...
+
+res1 = await leto.post(OverloadEvent())
+# res1.value == "default"
+
+res2 = await leto.post(OverloadEvent(a=42))
+# res2.value == "int: 42"
+
+res3 = await leto.post(OverloadEvent(a=10, b=True))
+# res3.value == "both: 10, True"
+```
+
+在调用 `@apply_overload` 时，`Letoderea` 会收集所有用 `@overload` 装饰的同名函数，并在事件触发时根据参数的实际类型匹配到对应的重载实现。
+
+如果需要直接调用重载分发器，可以使用 `call_overload` 函数：
+
+```python
+from arclet.letoderea import call_overload
+
+result = await call_overload(handle, a=42)
+```
+
+## 效果管理器 (EffectManager)
+
+`Letoderea` 提供了 `EffectManager` 来管理资源的生命周期。通过注册"效果"（effect），可以自动收集和清理资源。
+
+```python
+from arclet.letoderea import Scope
+
+scope = Scope.of("my_scope")
+
+# 注册一个效果，返回一个清理函数
+dispose = scope.effect(lambda: resource.acquire, "resource")
+
+# 在适当的时机清理所有效果
+scope.dispose()
+```
+
+`Scope` 对象内置了 `EffectManager`，在调用 `scope.dispose()` 时会自动清理所有已注册的效果。`EffectManager` 支持以下类型的效果：
+
+- **同步效果**：直接返回一个可调用对象作为清理函数
+- **迭代器效果**：通过 `yield` 返回多个清理函数
+- **异步效果**：返回一个可等待对象，其结果作为清理函数
+- **异步迭代器效果**：通过 `async yield` 返回多个清理函数
+
+```python
+from arclet.letoderea import Scope
+
+scope = Scope.of()
+
+# 同步效果
+scope.effect(lambda: print("cleanup"), "sync")
+
+# 迭代器效果 - yield 多个清理函数
+def iter_effect():
+    yield lambda: print("cleanup 1")
+    yield lambda: print("cleanup 2")
+
+scope.effect(iter_effect, "iter")
+```
+
+## 工具
+
+### `Force`
+
+`Force` 用于包装一个返回值，以避免 `Letoderea` 对返回值的特殊处理（如 `None` 被视为无返回值）：
+
+```python
+from arclet.letoderea import Force
+
+@leto.on(TestEvent)
+async def subscriber():
+    return Force(None)  # 显式返回 None，不会被视为"无返回值"
+```
+
+### `Result`
+
+`Result` 用于包装订阅者的返回值，提供类型安全的访问：
+
+```python
+from arclet.letoderea import Result
+
+result = await leto.post(TestEvent(42))
+if result is not None:
+    print(result.value)  # 类型安全的访问
+```
